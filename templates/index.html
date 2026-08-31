@@ -10,7 +10,6 @@
         h1 { text-align: center; color: #0f172a; margin-bottom: 5px; }
         p.subtitle { text-align: center; color: #64748b; margin-bottom: 25px; }
         
-        /* تنسيق بانر الإعلانات الجديد */
         .ad-banner { background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 25px; }
         .ad-label { font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -22,10 +21,14 @@
         button.submit-btn:hover { background-color: #1d4ed8; }
         .result-box { margin-top: 30px; padding: 25px; background-color: #f8fafc; border-right: 5px solid #2563eb; border-radius: 8px; display: none; }
         .result-content { line-height: 1.7; color: #1e293b; background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .download-btn { margin-top: 15px; background-color: #10b981; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .download-btn:hover { background-color: #059669; }
+        
+        .download-container { display: flex; gap: 10px; margin-top: 15px; }
+        .download-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; text-align: center; }
+        .word-btn { background-color: #2980b9; }
+        .word-btn:hover { background-color: #2471a3; }
+        .pdf-btn { background-color: #c0392b; }
+        .pdf-btn:hover { background-color: #a93226; }
 
-        /* نافذة الدفع المنبثقة (Modal) */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
         .modal-card { background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; }
         .modal-card h2 { color: #0f172a; margin-bottom: 10px; }
@@ -42,11 +45,9 @@
     <h1>أداة تحسين السيرة الذاتية الشاملة (ATS)</h1>
     <p class="subtitle">تحسين السيرة الذاتية، دعم الـ PDF، التصدير، وتوافق الفرز الآلي</p>
 
-    <!-- بانر الإعلانات لتحقيق الدخل -->
     <div class="ad-banner">
         <div class="ad-label">إعلان ممول / Sponsored Ad</div>
-        <!-- استبدل هذا الجزء لاحقاً بكود إعلانات جوجل أو أي شبكة إعلانية -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7946557086083356" crossorigin="anonymous"></script>        <ins class="adsbygoogle"
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7946557086083356" crossorigin="anonymous"></script>        <ins class="adsbygoogle"
              style="display:block"
              data-ad-client="ca-pub-7946557086083356"
              data-ad-slot="1234567890"
@@ -81,19 +82,27 @@
     <div class="result-box" id="resultBox">
         <h3>النتيجة المحسّنة:</h3>
         <div class="result-content" id="resultText"></div>
-        <button class="download-btn" onclick="downloadResult()">تحميل النتيجة كملف نصي (TXT) 💾</button>
+        
+        <!-- أزرار التحميل المباشر -->
+        <div class="download-container">
+            <form action="/download/word" method="POST" style="flex: 1;">
+                <input type="hidden" name="content" id="wordContentInput">
+                <button type="submit" class="download-btn word-btn">تحميل كملف Word 📄</button>
+            </form>
+            <form action="/download/pdf" method="POST" style="flex: 1;">
+                <input type="hidden" name="content" id="pdfContentInput">
+                <button type="submit" class="download-btn pdf-btn">تحميل كملف PDF 📑</button>
+            </form>
+        </div>
     </div>
 </div>
 
-<!-- نافذة الدفع المنبثقة -->
 <div class="modal-overlay" id="payModal">
     <div class="modal-card">
         <h2>🔒 وصلت للحد المجاني</h2>
         <p>لقد استخدمت محاولاتك الـ 3 المجانية لهذا اليوم. اشترك الآن بـ <b>$5 شهرياً</b> للحصول على استخدام غير محدود!</p>
-        
-        <a href="YOUR_STRIPE_CHECKOUT_LINK" target="_blank" class="pay-btn stripe-btn">الدفع بواسطة (Apple Pay / Google Pay / Card)</a>
-        <a href="YOUR_PAYPAL_ME_LINK" target="_blank" class="pay-btn paypal-btn">الدفع بواسطة PayPal</a>
-        
+        <a href="#" class="pay-btn stripe-btn">الدفع بواسطة (Apple Pay / Google Pay / Card)</a>
+        <a href="#" class="pay-btn paypal-btn">الدفع بواسطة PayPal</a>
         <button class="pay-btn close-btn" onclick="closeModal()">إغلاق</button>
     </div>
 </div>
@@ -124,6 +133,11 @@ async function optimizeCV() {
         } else if (response.ok) {
             latestRawText = data.raw_text;
             resultText.innerHTML = data.formatted_html;
+            
+            // تعبئة حقول النيابة لإرسال النص عند التحميل
+            document.getElementById('wordContentInput').value = latestRawText;
+            document.getElementById('pdfContentInput').value = latestRawText;
+            
             resultBox.style.display = 'block';
         } else {
             alert(data.result || 'حدث خطأ أثناء المعالجة.');
@@ -134,15 +148,6 @@ async function optimizeCV() {
         btn.innerText = 'تحسين السيرة الذاتية الآن 🚀';
         btn.disabled = false;
     }
-}
-
-function downloadResult() {
-    if (!latestRawText) return;
-    const blob = new Blob([latestRawText], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'Optimized_Resume.txt';
-    link.click();
 }
 
 function closeModal() {
