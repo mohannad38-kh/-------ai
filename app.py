@@ -34,7 +34,6 @@ def home():
 
 @app.route('/optimize', methods=['POST'])
 def optimize_cv():
-    # 1. فحص حد الاستخدام المجاني
     user_ip = request.remote_addr
     current_usage = user_usage.get(user_ip, 0)
 
@@ -48,7 +47,6 @@ def optimize_cv():
         language = request.form.get('language', 'English')
         cv_text = request.form.get('cv_text', '')
 
-        # استخراج النص من الملف إن وجد
         if 'cv_file' in request.files and request.files['cv_file'].filename != '':
             file = request.files['cv_file']
             filename = file.filename.lower()
@@ -73,15 +71,15 @@ Requirements:
 CV Content:
 {cv_text}
 """
+        # استخدام أحدث نموذج متوافق مع المكتبة الجديدة
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
         )
 
         raw_text = response.text
         formatted_html = markdown.markdown(raw_text)
 
-        # زيادة عدد مرات الاستخدام للمستخدم بعد نجاح العملية
         user_usage[user_ip] = current_usage + 1
 
         return jsonify({
