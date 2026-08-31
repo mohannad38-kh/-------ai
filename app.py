@@ -7,8 +7,7 @@ import markdown
 
 app = Flask(__name__)
 
-# تعيين مفتاح الـ API المباشر
-GEMINI_API_KEY = "AQ.Ab8RN6I5J5ajodAPv2CZYLQBR1BTbOnj4lzsAk0BTCyLEKGvtA"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 # قاموس لتتبع الاستخدام المجاني بناءً على عنوان IP
