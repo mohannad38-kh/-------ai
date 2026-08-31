@@ -9,6 +9,11 @@
         .container { max-width: 850px; margin: auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h1 { text-align: center; color: #0f172a; margin-bottom: 5px; }
         p.subtitle { text-align: center; color: #64748b; margin-bottom: 25px; }
+        
+        /* تنسيق بانر الإعلانات الجديد */
+        .ad-banner { background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 25px; }
+        .ad-label { font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+
         label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; color: #1e293b; }
         input[type="text"], select, textarea, input[type="file"] { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         textarea { height: 140px; resize: vertical; }
@@ -36,6 +41,22 @@
 <div class="container">
     <h1>أداة تحسين السيرة الذاتية الشاملة (ATS)</h1>
     <p class="subtitle">تحسين السيرة الذاتية، دعم الـ PDF، التصدير، وتوافق الفرز الآلي</p>
+
+    <!-- بانر الإعلانات لتحقيق الدخل -->
+    <div class="ad-banner">
+        <div class="ad-label">إعلان ممول / Sponsored Ad</div>
+        <!-- استبدل هذا الجزء لاحقاً بكود إعلانات جوجل أو أي شبكة إعلانية -->
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="1234567890"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
 
     <form id="optimizeForm">
         <label for="jobTitle">المسمى الوظيفي المستهدف:</label>
@@ -71,7 +92,6 @@
         <h2>🔒 وصلت للحد المجاني</h2>
         <p>لقد استخدمت محاولاتك الـ 3 المجانية لهذا اليوم. اشترك الآن بـ <b>$5 شهرياً</b> للحصول على استخدام غير محدود!</p>
         
-        <!-- روابط صفحة الدفع الخاصة بك -->
         <a href="YOUR_STRIPE_CHECKOUT_LINK" target="_blank" class="pay-btn stripe-btn">الدفع بواسطة (Apple Pay / Google Pay / Card)</a>
         <a href="YOUR_PAYPAL_ME_LINK" target="_blank" class="pay-btn paypal-btn">الدفع بواسطة PayPal</a>
         
@@ -101,7 +121,6 @@ async function optimizeCV() {
         const data = await response.json();
         
         if (response.status === 403) {
-            // إظهار نافذة الدفع عند انتهاء الرصيد المجاني
             document.getElementById('payModal').style.display = 'flex';
         } else if (response.ok) {
             latestRawText = data.raw_text;
