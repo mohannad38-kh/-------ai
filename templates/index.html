@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أداة تحسين السيرة الذاتية الذكية (ATS Optimizer)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; background-color: #f1f5f9; padding: 20px; color: #334155; }
+        .container { max-width: 850px; margin: auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h1 { text-align: center; color: #0f172a; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #64748b; margin-bottom: 25px; }
+        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; color: #1e293b; }
+        input[type="text"], select, textarea, input[type="file"] { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        textarea { height: 140px; resize: vertical; }
+        .divider { text-align: center; font-weight: bold; margin: 15px 0; color: #94a3b8; }
+        button.submit-btn { margin-top: 20px; width: 100%; background-color: #2563eb; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button.submit-btn:hover { background-color: #1d4ed8; }
+        .result-box { margin-top: 30px; padding: 25px; background-color: #f8fafc; border-right: 5px solid #2563eb; border-radius: 8px; display: none; }
+        .result-content { line-height: 1.7; color: #1e293b; background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .download-btn { margin-top: 15px; background-color: #10b981; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .download-btn:hover { background-color: #059669; }
+
+        /* نافذة الدفع المنبثقة (Modal) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-card { background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; }
+        .modal-card h2 { color: #0f172a; margin-bottom: 10px; }
+        .modal-card p { color: #64748b; margin-bottom: 20px; }
+        .pay-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px; text-align: center; border: none; cursor: pointer; }
+        .stripe-btn { background-color: #635bff; color: white; }
+        .paypal-btn { background-color: #ffc439; color: #111; }
+        .close-btn { background-color: #e2e8f0; color: #475569; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>أداة تحسين السيرة الذاتية الشاملة (ATS)</h1>
+    <p class="subtitle">تحسين السيرة الذاتية، دعم الـ PDF، التصدير، وتوافق الفرز الآلي</p>
+
+    <form id="optimizeForm">
+        <label for="jobTitle">المسمى الوظيفي المستهدف:</label>
+        <input type="text" id="jobTitle" name="job_title" placeholder="مثال: AI & Robotics Engineer" required>
+
+        <label for="language">لغة النتيجة المطلوبة:</label>
+        <select id="language" name="language">
+            <option value="English">الإنجليزية (English)</option>
+            <option value="Arabic">العربية (Arabic)</option>
+        </select>
+
+        <label for="cvFile">رفع ملف السيرة الذاتية (PDF أو DOCX):</label>
+        <input type="file" id="cvFile" name="cv_file" accept=".pdf, .docx">
+
+        <div class="divider">— أو —</div>
+
+        <label for="cvText">الصق نص السيرة الذاتية هنا:</label>
+        <textarea id="cvText" name="cv_text" placeholder="ضع نص السيرة الذاتية هنا..."></textarea>
+
+        <button type="button" onclick="optimizeCV()" id="submitBtn" class="submit-btn">تحسين السيرة الذاتية الآن 🚀</button>
+    </form>
+
+    <div class="result-box" id="resultBox">
+        <h3>النتيجة المحسّنة:</h3>
+        <div class="result-content" id="resultText"></div>
+        <button class="download-btn" onclick="downloadResult()">تحميل النتيجة كملف نصي (TXT) 💾</button>
+    </div>
+</div>
+
+<!-- نافذة الدفع المنبثقة -->
+<div class="modal-overlay" id="payModal">
+    <div class="modal-card">
+        <h2>🔒 وصلت للحد المجاني</h2>
+        <p>لقد استخدمت محاولاتك الـ 3 المجانية لهذا اليوم. اشترك الآن بـ <b>$5 شهرياً</b> للحصول على استخدام غير محدود!</p>
+        
+        <!-- روابط صفحة الدفع الخاصة بك -->
+        <a href="YOUR_STRIPE_CHECKOUT_LINK" target="_blank" class="pay-btn stripe-btn">الدفع بواسطة (Apple Pay / Google Pay / Card)</a>
+        <a href="YOUR_PAYPAL_ME_LINK" target="_blank" class="pay-btn paypal-btn">الدفع بواسطة PayPal</a>
+        
+        <button class="pay-btn close-btn" onclick="closeModal()">إغلاق</button>
+    </div>
+</div>
+
+<script>
+let latestRawText = "";
+
+async function optimizeCV() {
+    const form = document.getElementById('optimizeForm');
+    const formData = new FormData(form);
+    const btn = document.getElementById('submitBtn');
+    const resultBox = document.getElementById('resultBox');
+    const resultText = document.getElementById('resultText');
+
+    btn.innerText = 'جاري المعالجة بواسطة الذكاء الاصطناعي... ⏳';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('/optimize', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.status === 403) {
+            // إظهار نافذة الدفع عند انتهاء الرصيد المجاني
+            document.getElementById('payModal').style.display = 'flex';
+        } else if (response.ok) {
+            latestRawText = data.raw_text;
+            resultText.innerHTML = data.formatted_html;
+            resultBox.style.display = 'block';
+        } else {
+            alert(data.result || 'حدث خطأ أثناء المعالجة.');
+        }
+    } catch (error) {
+        alert('حدث خطأ في الاتصال بالخادم.');
+    } finally {
+        btn.innerText = 'تحسين السيرة الذاتية الآن 🚀';
+        btn.disabled = false;
+    }
+}
+
+function downloadResult() {
+    if (!latestRawText) return;
+    const blob = new Blob([latestRawText], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'Optimized_Resume.txt';
+    link.click();
+}
+
+function closeModal() {
+    document.getElementById('payModal').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
