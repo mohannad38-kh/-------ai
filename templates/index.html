@@ -37,6 +37,14 @@
         .stripe-btn { background-color: #635bff; color: white; }
         .paypal-btn { background-color: #ffc439; color: #111; }
         .close-btn { background-color: #e2e8f0; color: #475569; }
+
+        /* إعدادات مخصصة عند طباعة الصفحة لحفظها PDF */
+        @media print {
+            body * { visibility: hidden; }
+            #resultText, #resultText * { visibility: visible; }
+            #resultText { position: absolute; left: 0; top: 0; width: 100%; border: none; background: white; }
+            .download-container, form, h1, .subtitle, .ad-banner { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -83,16 +91,14 @@
         <h3>النتيجة المحسّنة:</h3>
         <div class="result-content" id="resultText"></div>
         
-        <!-- أزرار التحميل المباشر -->
+        <!-- أزرار التحميل -->
         <div class="download-container">
             <form action="/download/word" method="POST" style="flex: 1;">
                 <input type="hidden" name="content" id="wordContentInput">
                 <button type="submit" class="download-btn word-btn">تحميل كملف Word 📄</button>
             </form>
-            <form action="/download/pdf" method="POST" style="flex: 1;">
-                <input type="hidden" name="content" id="pdfContentInput">
-                <button type="submit" class="download-btn pdf-btn">تحميل كملف PDF 📑</button>
-            </form>
+            <!-- زر الطباعة السريعة لحفظ PDF بتنسيق نظيم -->
+            <button type="button" class="download-btn pdf-btn" onclick="printPDF()">تحميل كملف PDF 📑</button>
         </div>
     </div>
 </div>
@@ -134,9 +140,7 @@ async function optimizeCV() {
             latestRawText = data.raw_text;
             resultText.innerHTML = data.formatted_html;
             
-            // تعبئة حقول النيابة لإرسال النص عند التحميل
             document.getElementById('wordContentInput').value = latestRawText;
-            document.getElementById('pdfContentInput').value = latestRawText;
             
             resultBox.style.display = 'block';
         } else {
@@ -148,6 +152,10 @@ async function optimizeCV() {
         btn.innerText = 'تحسين السيرة الذاتية الآن 🚀';
         btn.disabled = false;
     }
+}
+
+function printPDF() {
+    window.print(); // تفتح نافذة الطباعة ومنها تختار Save as PDF بضغطة زر وبأعلى جودة
 }
 
 function closeModal() {

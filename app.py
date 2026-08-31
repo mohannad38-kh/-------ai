@@ -5,8 +5,6 @@ import PyPDF2
 import docx
 import markdown
 import io
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
 
@@ -93,7 +91,7 @@ CV Content:
     except Exception as e:
         return jsonify({'result': f"حدث خطأ أثناء معالجة الطلب: {str(e)}"}), 500
 
-# مسار لتحميل النتيجة كملف Word
+# مسار لتحميل النتيجة كملف Word (يعمل بكفاءة عالية)
 @app.route('/download/word', methods=['POST'])
 def download_word():
     content = request.form.get('content', '')
@@ -111,33 +109,6 @@ def download_word():
         as_attachment=True,
         download_name='Optimized_Resume.docx',
         mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    )
-
-# مسار لتحميل النتيجة كملف PDF
-@app.route('/download/pdf', methods=['POST'])
-def download_pdf():
-    content = request.form.get('content', '')
-    file_stream = io.BytesIO()
-    p = canvas.Canvas(file_stream, pagesize=letter)
-    width, height = letter
-    
-    text_object = p.beginText(40, height - 40)
-    text_object.setFont("Helvetica", 10)
-    
-    for line in content.split('\n'):
-        text_object.textLine(line)
-        
-    p.drawText(text_object)
-    p.showPage()
-    p.save()
-    
-    file_stream.seek(0)
-    
-    return send_file(
-        file_stream,
-        as_attachment=True,
-        download_name='Optimized_Resume.pdf',
-        mimetype='pdf'
     )
 
 if __name__ == '__main__':
