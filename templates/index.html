@@ -14,6 +14,15 @@
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- CPAGrip Content Locker Script -->
+    <script type="text/javascript">var lck = false;</script>
+    <script type="text/javascript" src="https://trianglerockers.com/script_include.php?id=1911667"></script>
+    <script type="text/javascript">if(!lck){top.location = 'https://trianglerockers.com/help/ablk.php?lkt=1'; }</script>
+    <noscript>
+        Please enable JavaScript to access this page.
+        <meta http-equiv="refresh" content="0;url=https://trianglerockers.com/help/enable_javascript.php?lkt=1" />
+    </noscript>
+
     <link rel="icon" href="{{ url_for('static', filename='logo.jpg') }}" type="image/jpeg">
 
     <style>
@@ -214,12 +223,31 @@
   async function signUp() {
       const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) alert("خطأ في إنشاء الحساب: " + error.message);
-      else {
-          alert("تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني للتأكيد إن طُلب ذلك.");
-          closeModal('authModal');
+
+      if (!email || !password) {
+          alert("يرجى إدخال البريد الإلكتروني وكلمة المرور أولاً.");
+          return;
       }
+
+      // تشغيل قفل CPAGrip التفاعلي
+      if (typeof call_locker === 'function') {
+          call_locker();
+      } else {
+          window.open('https://trianglerockers.com/1911667', '_blank');
+      }
+
+      setTimeout(async () => {
+          const confirmCompletion = confirm("هل قمت بإكمال العرض الإعلاني المطلوب لتفعيل حسابك؟");
+          if (confirmCompletion) {
+              const { data, error } = await supabase.auth.signUp({ email, password });
+              if (error) {
+                  alert("خطأ في إنشاء الحساب: " + error.message);
+              } else {
+                  alert("تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني للتأكيد.");
+                  closeModal('authModal');
+              }
+          }
+      }, 1500);
   }
 
   async function login() {
@@ -323,6 +351,15 @@
   }
 
   async function optimizeCV() {
+      // 1. التحقق مما إذا كان المستخدم قد سجل دخوله بالفعل
+      if (!currentUser) {
+          alert(document.getElementById('siteLang').value === 'ar' 
+              ? "يرجى تسجيل الدخول أو إنشاء حساب جديد لاستخدام أداة تحسين السيرة الذاتية." 
+              : "Please log in or create an account to use the ATS Resume Optimizer.");
+          openAuthModal(); // فتح نافذة تسجيل الدخول / إنشاء الحساب تلقائياً
+          return; // إيقاف تنفيذ العملية حتى يسجل المستخدم دخوله
+      }
+
       const lang = document.getElementById('siteLang').value;
       const t = translations[lang];
       const form = document.getElementById('optimizeForm');
@@ -350,7 +387,7 @@
               document.getElementById('wordContentInput').value = latestRawText;
               resultBox.style.display = 'block';
 
-              // حفظ النتيجة في Supabase إذا كان المستخدم مسجلاً
+              // حفظ النتيجة في Supabase
               const jobTitle = document.getElementById('jobTitle').value;
               await saveCVToSupabase(jobTitle, latestRawText);
           } else {
