@@ -22,7 +22,7 @@
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
         .lang-switcher select { padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: bold; cursor: pointer; }
         .auth-bar { display: flex; gap: 10px; align-items: center; }
-        .auth-btn { padding: 6px 14px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .auth-btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; z-index: 10; }
         .login-btn { background-color: #2563eb; color: white; }
         .logout-btn { background-color: #ef4444; color: white; display: none; }
         .user-email { font-size: 13px; color: #64748b; font-weight: bold; }
@@ -33,7 +33,6 @@
         .ad-banner { background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 25px; }
         .ad-label { font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* صندوق عروض CPAGrip المدمج والمفتوح بدون قفل */
         .cpa-widget-box {
             background: #eff6ff;
             border: 2px solid #3b82f6;
@@ -53,39 +52,26 @@
             text-decoration: none;
             font-weight: bold;
             font-size: 14px;
-            transition: background 0.2s;
         }
-        .cpa-offer-btn:hover { background-color: #059669; }
 
         label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; color: #1e293b; }
         input[type="text"], input[type="email"], input[type="password"], select, textarea, input[type="file"] { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         textarea { height: 140px; resize: vertical; }
         .divider { text-align: center; font-weight: bold; margin: 15px 0; color: #94a3b8; }
         button.submit-btn { margin-top: 20px; width: 100%; background-color: #2563eb; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        button.submit-btn:hover { background-color: #1d4ed8; }
+        
         .result-box { margin-top: 30px; padding: 25px; background-color: #f8fafc; border-right: 5px solid #2563eb; border-radius: 8px; display: none; }
         .result-content { line-height: 1.7; color: #1e293b; background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
         
         .download-container { display: flex; gap: 10px; margin-top: 15px; }
         .download-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; text-align: center; }
         .word-btn { background-color: #2980b9; }
-        .word-btn:hover { background-color: #2471a3; }
         .pdf-btn { background-color: #c0392b; }
-        .pdf-btn:hover { background-color: #a93226; }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 9999; }
         .modal-card { background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; }
-        .modal-card h2 { color: #0f172a; margin-bottom: 10px; }
-        .modal-card p { color: #64748b; margin-bottom: 20px; }
         .pay-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px; text-align: center; border: none; cursor: pointer; }
         .close-btn { background-color: #e2e8f0; color: #475569; }
-
-        @media print {
-            body * { visibility: hidden; }
-            #resultText, #resultText * { visibility: visible; }
-            #resultText { position: absolute; left: 0; top: 0; width: 100%; border: none; background: white; }
-            .download-container, form, h1, .subtitle, .ad-banner, .top-bar, .cpa-widget-box { display: none; }
-        }
     </style>
 </head>
 <body>
@@ -100,22 +86,20 @@
         </div>
         <div class="auth-bar">
             <span id="userEmail" class="user-email"></span>
-            <button id="authBtn" class="auth-btn login-btn" onclick="openAuthModal()">تسجيل الدخول / حساب جديد</button>
-            <button id="logoutBtn" class="auth-btn logout-btn" onclick="logout()">تسجيل الخروج</button>
+            <button id="authBtn" type="button" class="auth-btn login-btn" onclick="openAuthModal()">تسجيل الدخول / حساب جديد</button>
+            <button id="logoutBtn" type="button" class="auth-btn logout-btn" onclick="logout()">تسجيل الخروج</button>
         </div>
     </div>
 
     <h1 id="mainTitle">أداة تحسين السيرة الذاتية الشاملة (ATS)</h1>
     <p class="subtitle" id="mainSubtitle">تحسين السيرة الذاتية، دعم الـ PDF، التصدير، وتوافق الفرز الآلي</p>
 
-    <!-- عرض إعلاني متوافق من CPAGrip مفتوح بدون قفل إجباري -->
     <div class="cpa-widget-box">
         <h4>🎁 عرض مميز للمستخدمين</h4>
         <p>شارِك في العرض للحصول على فرص ومكافآت مجانية ودعم استمرار الأداة:</p>
         <a href="https://trianglerockers.com/1911667" target="_blank" class="cpa-offer-btn">اضغط هنا لاستعراض العرض والاشتراك 🚀</a>
     </div>
 
-    <!-- Google AdSense Banner -->
     <div class="ad-banner">
         <div class="ad-label" id="adLabelText">إعلان ممول / Sponsored Ad</div>
         <ins class="adsbygoogle"
@@ -164,36 +148,31 @@
     </div>
 </div>
 
-<!-- نافذة الاشتراك / الدفع -->
 <div class="modal-overlay" id="payModal">
     <div class="modal-card">
         <h2 id="modalTitle">🔒 وصلت للحد المجاني</h2>
         <p id="modalDesc">لقد استخدمت محاولاتك الـ 3 المجانية لهذا اليوم. اشترك الآن بـ <b>$5 شهرياً</b> للحصول على استخدام غير محدود!</p>
-
         <div id="paypal-container-1"></div>
         <button class="pay-btn close-btn" onclick="closeModal('payModal')" id="closeBtnText">إغلاق</button>
     </div>
 </div>
 
-<!-- نافذة تسجيل الدخول وانشاء حساب -->
+<!-- نافذة تسجيل الدخول/إنشاء حساب -->
 <div class="modal-overlay" id="authModal">
     <div class="modal-card">
         <h2 id="authModalTitle">تسجيل الدخول / إنشاء حساب</h2>
         <input type="email" id="authEmail" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;">
         <input type="password" id="authPassword" placeholder="كلمة المرور" style="margin-bottom: 15px;">
         
-        <button class="pay-btn login-btn" onclick="login()">تسجيل الدخول</button>
-        <button class="pay-btn" style="background-color: #10b981; color: white;" onclick="signUp()">إنشاء حساب جديد</button>
-        <button class="pay-btn close-btn" onclick="closeModal('authModal')">إلغاء</button>
+        <button type="button" class="pay-btn login-btn" onclick="login()">تسجيل الدخول</button>
+        <button type="button" class="pay-btn" style="background-color: #10b981; color: white;" onclick="signUp()">إنشاء حساب جديد</button>
+        <button type="button" class="pay-btn close-btn" onclick="closeModal('authModal')">إلغاء</button>
     </div>
 </div>
 
 <script src="https://www.paypal.com/sdk/js?client-id=BAA3P27A4KUI6j0emFLdtIPLJgkxOksV99nQRgvOXJ-OneF1_MuGSAEbuvGA2M89OQkvbxHYCJrXkjsQi8&components=hosted-buttons&disable-funding=venmo&currency=USD"></script>
-<script>
-  paypal.HostedButtons({
-    hostedButtonId: "معرّف_الزر_الخاص_بك_من_باي_بال",
-  }).render("#paypal-container-1");
 
+<script>
   // تهيئة Supabase
   const SUPABASE_URL = "https://ojzyjmfauubzvhunetyp.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qenlqbWZhdXVienZodW5ldHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNTg0NzksImV4cCI6MjEwMzgzNDQ3OX0.wh48A04yGiPa6oG_fAGyM2JlgLZjqGvQ2xM8KbmeOeg";
@@ -202,7 +181,25 @@
   let currentUser = null;
   let latestRawText = "";
 
+  function openAuthModal() {
+      document.getElementById('authModal').style.display = 'flex';
+  }
+
+  function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+  }
+
   window.addEventListener('load', async () => {
+      try {
+          if (window.paypal && paypal.HostedButtons) {
+              paypal.HostedButtons({
+                  hostedButtonId: "YOUR_BUTTON_ID",
+              }).render("#paypal-container-1");
+          }
+      } catch (e) {
+          console.log("PayPal init skipped");
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
           currentUser = session.user;
@@ -220,14 +217,6 @@
           document.getElementById('authBtn').style.display = 'inline-block';
           document.getElementById('logoutBtn').style.display = 'none';
       }
-  }
-
-  function openAuthModal() {
-      document.getElementById('authModal').style.display = 'flex';
-  }
-
-  function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
   }
 
   async function signUp() {
