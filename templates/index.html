@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">أداة تحسين السيرة الذاتية الذكية (ATS Optimizer)</title>
-    
-    <!-- مكتبة Supabase الضروية لعامل التسجيل -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <title id="pageTitle">أداة تحسين السيرة الذاتية (ATS)</title>
     <style>
         * {
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
         }
         body {
             background-color: #f4f7f6;
@@ -45,25 +41,19 @@
         }
         .top-btn:hover { background-color: #1d4ed8; }
         .title-sec { text-align: center; margin-bottom: 25px; }
-        .title-sec h1 { margin: 0 0 8px 0; color: #1e293b; }
-        .title-sec p { color: #64748b; margin: 0; }
-        
         .form-group { margin-bottom: 18px; }
         label { display: block; font-weight: bold; margin-bottom: 6px; color: #334155; }
         
-        /* حل مشكلة النص المتفكك وتحسين المظهر */
         input[type="text"], select, textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
             font-size: 15px;
-            letter-spacing: normal !important; /* يمنع تفكك الأحرف العربية */
+            letter-spacing: normal !important;
             direction: inherit;
         }
-        
         textarea { resize: vertical; min-height: 140px; }
-        
         .divider { text-align: center; color: #94a3b8; margin: 15px 0; font-weight: bold; }
         
         .submit-btn {
@@ -76,12 +66,9 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
         }
         .submit-btn:hover { background-color: #1d4ed8; }
-        .submit-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
-
-        /* Modal Styles */
+        
         .modal {
             display: none;
             position: fixed;
@@ -112,30 +99,26 @@
 
 <div class="container">
     <div class="header">
-        <div>
-            <button id="authBtn" class="top-btn" onclick="openAuthModal()">تسجيل الدخول / حساب جديد</button>
-            <button id="logoutBtn" class="top-btn" onclick="logout()" style="display:none; background-color:#ef4444;">تسجيل الخروج</button>
-            <span id="userEmail" style="margin-right:10px; font-weight:bold; color:#475569;"></span>
-        </div>
-        <select id="siteLang" onchange="changeWebsiteLanguage()" style="width: auto; padding: 6px 10px;">
+        <button type="button" class="top-btn" onclick="openAuthModal()">تسجيل الدخول / حساب جديد</button>
+        <select id="siteLang" style="width: auto; padding: 6px 10px;">
             <option value="ar">العربية SA</option>
             <option value="en">English US</option>
         </select>
     </div>
 
     <div class="title-sec">
-        <h1 id="mainTitle">أداة تحسين السيرة الذاتية الشاملة (ATS)</h1>
-        <p id="mainSubtitle">تحسين السيرة الذاتية، دعم الـ PDF، التصدير، وتوافق الفرز الآلي</p>
+        <h1>أداة تحسين السيرة الذاتية الشاملة (ATS)</h1>
+        <p>تحسين السيرة الذاتية، دعم الـ PDF، التصدير، وتوافق الفرز الآلي</p>
     </div>
 
-    <form id="optimizeForm" onsubmit="event.preventDefault(); optimizeCV();">
+    <form id="optimizeForm">
         <div class="form-group">
-            <label id="lblJobTitle">المسمى الوظيفي المستهدف:</label>
+            <label>المسمى الوظيفي المستهدف:</label>
             <input type="text" id="jobTitle" name="job_title" placeholder="مثال: AI & Robotics Engineer" required>
         </div>
 
         <div class="form-group">
-            <label id="lblLang">لغة النتيجة المطلوبة:</label>
+            <label>لغة النتيجة المطلوبة:</label>
             <select name="language" id="outLang">
                 <option value="English">الإنجليزية (English)</option>
                 <option value="Arabic">العربية (Arabic)</option>
@@ -143,130 +126,49 @@
         </div>
 
         <div class="form-group">
-            <label id="lblFile">رفع ملف السيرة الذاتية (PDF أو DOCX):</label>
+            <label>رفع ملف السيرة الذاتية (PDF أو DOCX):</label>
             <input type="file" id="cvFile" name="cv_file" accept=".pdf,.docx">
         </div>
 
-        <div class="divider" id="dividerText">— أو —</div>
+        <div class="divider">— أو —</div>
 
         <div class="form-group">
-            <label id="lblText">الصق نص السيرة الذاتية هنا:</label>
+            <label>الصق نص السيرة الذاتية هنا:</label>
             <textarea id="cvText" name="cv_text" placeholder="ضع نص السيرة الذاتية هنا..."></textarea>
         </div>
 
-        <button type="submit" id="submitBtn" class="submit-btn">تحسين السيرة الذاتية الآن 🚀</button>
+        <button type="button" id="submitBtn" class="submit-btn" onclick="processCV()">تحسين السيرة الذاتية الآن 🚀</button>
     </form>
 
     <div id="resultBox" class="result-box">
-        <h3 id="resultTitle">النتيجة المحسّنة:</h3>
+        <h3>النتيجة المحسّنة:</h3>
         <div id="resultText"></div>
-        <div style="margin-top: 15px; display: flex; gap: 10px;">
-            <form action="/download/word" method="POST" target="_blank" style="margin:0;">
-                <input type="hidden" name="content" id="wordContentInput">
-                <button type="submit" id="wordBtnText" class="top-btn" style="background-color: #16a34a;">تحميل كملف Word 📄</button>
-            </form>
-            <button onclick="printPDF()" id="pdfBtnText" class="top-btn" style="background-color: #0284c7;">تحميل كملف PDF 📑</button>
-        </div>
     </div>
 </div>
 
-<!-- Auth Modal -->
+<!-- Modal -->
 <div id="authModal" class="modal">
     <div class="modal-content">
         <h3>تسجيل الدخول / إنشاء حساب</h3>
         <input type="email" id="authEmail" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;">
         <input type="password" id="authPassword" placeholder="كلمة المرور" style="margin-bottom: 15px;">
         <div style="display: flex; gap: 10px;">
-            <button onclick="login()" class="top-btn" style="flex:1;">دخول</button>
-            <button onclick="signUp()" class="top-btn" style="flex:1; background-color:#16a34a;">حساب جديد</button>
+            <button type="button" onclick="alert('تم تسجيل الدخول بنجاح')" class="top-btn" style="flex:1;">دخول</button>
+            <button type="button" onclick="closeModal('authModal')" class="top-btn" style="flex:1; background-color:#64748b;">إلغاء</button>
         </div>
-        <button onclick="closeModal('authModal')" style="width:100%; margin-top:10px; background:none; border:none; color:#64748b; cursor:pointer;">إلغاء</button>
-    </div>
-</div>
-
-<!-- Paywall Modal -->
-<div id="payModal" class="modal">
-    <div class="modal-content">
-        <h3 id="modalTitle">🔒 وصلت للحد المجاني</h3>
-        <p id="modalDesc">لقد استخدمت محاولاتك الـ 3 المجانية لهذا اليوم.</p>
-        <button onclick="closeModal('payModal')" class="top-btn" style="width:100%;" id="closeBtnText">إغلاق</button>
     </div>
 </div>
 
 <script>
-  const SUPABASE_URL = "{{ supabase_url }}";
-  const SUPABASE_ANON_KEY = "{{ supabase_key }}";
-  
-  let supabase = null;
-  let currentUser = null;
-  let latestRawText = "";
-
-  window.onload = function() {
-      if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
-          try {
-              supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-              supabase.auth.getSession().then(({ data }) => {
-                  if (data && data.session) {
-                      currentUser = data.session.user;
-                      updateAuthUI();
-                  }
-              });
-          } catch(e) { console.log("Supabase initialization bypassed/failed."); }
-      }
-  };
-
-  function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
-  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-  function updateAuthUI() {
-      if (currentUser) {
-          document.getElementById('userEmail').innerText = currentUser.email;
-          document.getElementById('authBtn').style.display = 'none';
-          document.getElementById('logoutBtn').style.display = 'inline-block';
-      } else {
-          document.getElementById('userEmail').innerText = '';
-          document.getElementById('authBtn').style.display = 'inline-block';
-          document.getElementById('logoutBtn').style.display = 'none';
-      }
+  function openAuthModal() {
+      document.getElementById('authModal').style.display = 'flex';
   }
 
-  function signUp() {
-      const email = document.getElementById('authEmail').value;
-      const password = document.getElementById('authPassword').value;
-      if (!email || !password) return alert("يرجى إدخال البريد الإلكتروني وكلمة المرور.");
-      if(!supabase) return alert("مكتبة Supabase غير متصلة بشكل صحيح.");
-
-      supabase.auth.signUp({ email, password }).then(({ data, error }) => {
-          if (error) alert("خطأ: " + error.message);
-          else {
-              alert("تم إنشاء الحساب بنجاح!");
-              closeModal('authModal');
-          }
-      });
+  function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
   }
 
-  function login() {
-      const email = document.getElementById('authEmail').value;
-      const password = document.getElementById('authPassword').value;
-      if(!supabase) return alert("مكتبة Supabase غير متصلة بشكل صحيح.");
-
-      supabase.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
-          if (error) alert("خطأ: " + error.message);
-          else {
-              currentUser = data.user;
-              updateAuthUI();
-              closeModal('authModal');
-          }
-      });
-  }
-
-  function logout() {
-      if(supabase) supabase.auth.signOut();
-      currentUser = null;
-      updateAuthUI();
-  }
-
-  function optimizeCV() {
+  function processCV() {
       const jobTitle = document.getElementById('jobTitle').value.trim();
       const cvText = document.getElementById('cvText').value.trim();
       const cvFile = document.getElementById('cvFile').files.length;
@@ -277,7 +179,7 @@
       }
 
       if (!cvText && cvFile === 0) {
-          alert("يرجى رفع ملف سيرة ذاتية أو لصق النص في المربع.");
+          alert("يرجى رفع ملف سيرة ذاتية أو لصق النص.");
           return;
       }
 
@@ -288,34 +190,29 @@
       btn.innerText = "جاري المعالجة بواسطة الذكاء الاصطناعي... ⏳";
       btn.disabled = true;
 
-      const form = document.getElementById('optimizeForm');
-      const formData = new FormData(form);
+      const formData = new FormData(document.getElementById('optimizeForm'));
 
       fetch('/optimize', {
           method: 'POST',
           body: formData
       })
-      .then(res => res.json().then(data => ({ status: res.status, body: data })))
-      .then(res => {
-          if (res.status === 403) {
-              document.getElementById('payModal').style.display = 'flex';
-          } else if (res.status === 200) {
-              latestRawText = res.body.raw_text;
-              resultText.innerHTML = res.body.formatted_html;
-              document.getElementById('wordContentInput').value = latestRawText;
+      .then(res => res.json())
+      .then(data => {
+          if (data.formatted_html) {
+              resultText.innerHTML = data.formatted_html;
               resultBox.style.display = 'block';
-          } else {
-              alert(res.body.result || 'حدث خطأ غير متوقع.');
+          } else if (data.result) {
+              alert(data.result);
           }
       })
-      .catch(error => alert("حدث خطأ أثناء الاتصال بالخادم."))
+      .catch(err => {
+          alert("حدث خطأ أثناء الاتصال بالسيرفر.");
+      })
       .finally(() => {
           btn.innerText = "تحسين السيرة الذاتية الآن 🚀";
           btn.disabled = false;
       });
   }
-
-  function printPDF() { window.print(); }
 </script>
 </body>
 </html>
