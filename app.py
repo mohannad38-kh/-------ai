@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_file
-from google import genai
+import google.generativeai as genai
 import os
 import PyPDF2
 import docx
@@ -8,8 +8,13 @@ import io
 
 app = Flask(__name__)
 
+# إعداد مفتاح Gemini باستخدام المكتبة المستقرة
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+
+# تعريف النموذج المستقر
+model = genai.GenerativeModel('gemini-1.5-flash') if GEMINI_API_KEY else None
 
 user_usage = {}
 FREE_LIMIT = 3
@@ -30,7 +35,6 @@ def extract_text_from_docx(file_stream):
 
 @app.route('/')
 def home():
-    # إرسال المتغيرات للواجهة كي لا تتوقف السكربتات في JS
     return render_template(
         'index.html',
         supabase_url=os.environ.get("SUPABASE_URL", ""),
@@ -48,7 +52,7 @@ def optimize_cv():
         }), 403
 
     try:
-        if not client:
+        if not model:
             return jsonify({'result': 'مفتاح GEMINI_API_KEY غير معرف في البيئة.'}), 500
 
         job_title = request.form.get('job_title', '')
@@ -79,11 +83,7 @@ Requirements:
 CV Content:
 {cv_text}
 """
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-        )
-
+        response = model.generate_content(prompt)
         raw_text = response.text
         formatted_html = markdown.markdown(raw_text)
 
