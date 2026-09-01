@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="pageTitle">أداة تحسين السيرة الذاتية (ATS)</title>
+    
+    <!-- مكتبة Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -30,21 +34,46 @@
             align-items: center;
             margin-bottom: 20px;
         }
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
         .top-btn {
             background-color: #2563eb;
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
         }
         .top-btn:hover { background-color: #1d4ed8; }
+        .top-btn.secondary {
+            background-color: #10b981;
+        }
+        .top-btn.secondary:hover { background-color: #059669; }
+        .google-btn {
+            width: 100%;
+            background-color: #ffffff;
+            color: #333333;
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .google-btn:hover { background-color: #f8fafc; }
         .title-sec { text-align: center; margin-bottom: 25px; }
         .form-group { margin-bottom: 18px; }
         label { display: block; font-weight: bold; margin-bottom: 6px; color: #334155; }
         
-        input[type="text"], select, textarea {
+        input[type="text"], input[type="email"], input[type="password"], select, textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid #cbd5e1;
@@ -99,7 +128,16 @@
 
 <div class="container">
     <div class="header">
-        <button type="button" class="top-btn" onclick="openAuthModal()">تسجيل الدخول / حساب جديد</button>
+        <div class="auth-buttons">
+            <div id="unauthSec" style="display: flex; gap: 8px;">
+                <button type="button" class="top-btn" onclick="openModal('loginModal')">تسجيل الدخول</button>
+                <button type="button" class="top-btn secondary" onclick="openModal('signUpModal')">إنشاء حساب جديد</button>
+            </div>
+            <div id="authSec" style="display: none; align-items: center; gap: 10px;">
+                <span id="userEmail" style="font-weight: bold; color: #334155;"></span>
+                <button type="button" class="top-btn" onclick="logout()" style="background-color: #ef4444;">تسجيل الخروج</button>
+            </div>
+        </div>
         <select id="siteLang" style="width: auto; padding: 6px 10px;">
             <option value="ar">العربية SA</option>
             <option value="en">English US</option>
@@ -146,26 +184,151 @@
     </div>
 </div>
 
-<!-- Modal -->
-<div id="authModal" class="modal">
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
     <div class="modal-content">
-        <h3>تسجيل الدخول / إنشاء حساب</h3>
-        <input type="email" id="authEmail" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;">
-        <input type="password" id="authPassword" placeholder="كلمة المرور" style="margin-bottom: 15px;">
-        <div style="display: flex; gap: 10px;">
-            <button type="button" onclick="alert('تم تسجيل الدخول بنجاح')" class="top-btn" style="flex:1;">دخول</button>
-            <button type="button" onclick="closeModal('authModal')" class="top-btn" style="flex:1; background-color:#64748b;">إلغاء</button>
-        </div>
+        <h3>تسجيل الدخول</h3>
+        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;">
+        <input type="password" id="loginPassword" placeholder="كلمة المرور" style="margin-bottom: 15px;">
+        <button type="button" onclick="loginWithEmail()" class="top-btn" style="width: 100%;">دخول</button>
+        
+        <div class="divider">— أو —</div>
+        
+        <button type="button" onclick="loginWithGoogle()" class="google-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.72L.97 13.01C2.45 15.96 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.8c-.18-.53-.28-1.1-.28-1.8s.1-1.27.28-1.8L.97 4.99C.35 6.22 0 7.57 0 9s.35 2.78.97 4.01l2.9-2.21z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.04.97 4.99l2.9 2.21C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
+            متابعة باستخدام Google
+        </button>
+
+        <button type="button" onclick="closeModal('loginModal')" style="width:100%; margin-top:15px; background:none; border:none; color:#64748b; cursor:pointer;">إلغاء</button>
+    </div>
+</div>
+
+<!-- Sign Up Modal -->
+<div id="signUpModal" class="modal">
+    <div class="modal-content">
+        <h3>إنشاء حساب جديد</h3>
+        <input type="email" id="signUpEmail" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;">
+        <input type="password" id="signUpPassword" placeholder="كلمة المرور" style="margin-bottom: 15px;">
+        <button type="button" onclick="signUpWithEmail()" class="top-btn secondary" style="width: 100%;">إنشاء الحساب</button>
+        
+        <div class="divider">— أو —</div>
+        
+        <button type="button" onclick="loginWithGoogle()" class="google-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.72L.97 13.01C2.45 15.96 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.8c-.18-.53-.28-1.1-.28-1.8s.1-1.27.28-1.8L.97 4.99C.35 6.22 0 7.57 0 9s.35 2.78.97 4.01l2.9-2.21z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.04.97 4.99l2.9 2.21C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
+            التسجيل باستخدام Google
+        </button>
+
+        <button type="button" onclick="closeModal('signUpModal')" style="width:100%; margin-top:15px; background:none; border:none; color:#64748b; cursor:pointer;">إلغاء</button>
     </div>
 </div>
 
 <script>
-  function openAuthModal() {
-      document.getElementById('authModal').style.display = 'flex';
+  const SUPABASE_URL = "{{ supabase_url }}";
+  const SUPABASE_ANON_KEY = "{{ supabase_key }}";
+  
+  let supabase = null;
+  let currentUser = null;
+
+  window.onload = function() {
+      if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+          try {
+              supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+              supabase.auth.getSession().then(({ data }) => {
+                  if (data && data.session) {
+                      currentUser = data.session.user;
+                      updateAuthUI();
+                  }
+              });
+
+              supabase.auth.onAuthStateChange((event, session) => {
+                  if (session) {
+                      currentUser = session.user;
+                      updateAuthUI();
+                  } else {
+                      currentUser = null;
+                      updateAuthUI();
+                  }
+              });
+          } catch(e) { console.log("Supabase config error:", e); }
+      }
+  };
+
+  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+  function updateAuthUI() {
+      if (currentUser) {
+          document.getElementById('userEmail').innerText = currentUser.email;
+          document.getElementById('unauthSec').style.display = 'none';
+          document.getElementById('authSec').style.display = 'flex';
+      } else {
+          document.getElementById('userEmail').innerText = '';
+          document.getElementById('unauthSec').style.display = 'flex';
+          document.getElementById('authSec').style.display = 'none';
+      }
   }
 
-  function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
+  function loginWithEmail() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      if (!email || !password) return alert("يرجى إدخال البريد الإلكتروني وكلمة المرور.");
+      if (!supabase) return alert("الخدمة غير متصلة.");
+
+      supabase.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
+          if (error) alert("خطأ في تسجيل الدخول: " + error.message);
+          else {
+              currentUser = data.user;
+              updateAuthUI();
+              closeModal('loginModal');
+          }
+      });
+  }
+
+  function signUpWithEmail() {
+      const email = document.getElementById('signUpEmail').value;
+      const password = document.getElementById('signUpPassword').value;
+      if (!email || !password) return alert("يرجى إدخال البريد الإلكتروني وكلمة المرور.");
+      if (!supabase) return alert("الخدمة غير متصلة.");
+
+      supabase.auth.signUp({ email, password }).then(({ data, error }) => {
+          if (error) alert("خطأ في إنشاء الحساب: " + error.message);
+          else {
+              alert("تم إنشاء الحساب بنجاح! يرجى تفقد بريدك الإلكتروني للتأكيد إن تطلب ذلك.");
+              closeModal('signUpModal');
+          }
+      });
+  }
+
+  function loginWithGoogle() {
+      if (!supabase) return alert("الخدمة غير متصلة.");
+      supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin }
+      }).catch(err => alert("خطأ في تسجيل قوقل: " + err.message));
+  }
+
+  function logout() {
+      if (supabase) supabase.auth.signOut();
+      currentUser = null;
+      updateAuthUI();
+  }
+
+  function saveCVToSupabase(jobTitle, content) {
+      if (!supabase) return;
+
+      const payload = {
+          job_title: jobTitle,
+          cv_content: content
+      };
+
+      if (currentUser && currentUser.id) {
+          payload.user_id = currentUser.id;
+      }
+
+      supabase.from('cvs').insert([payload]).then(({ error }) => {
+          if (error) console.error("Supabase Save Error:", error.message);
+          else console.log("CV saved successfully!");
+      });
   }
 
   function processCV() {
@@ -201,6 +364,7 @@
           if (data.formatted_html) {
               resultText.innerHTML = data.formatted_html;
               resultBox.style.display = 'block';
+              saveCVToSupabase(jobTitle, data.raw_text);
           } else if (data.result) {
               alert(data.result);
           }
