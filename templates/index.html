@@ -12,7 +12,6 @@
     <style>
         * { box-sizing: border-box; font-family: sans-serif; }
         
-        /* خلفية فخمة تدمج الأزرق الغامق والبنفسجي بتدرج فضائي ساحر */
         body { 
             background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 50%, #060913 100%);
             color: #f8fafc;
@@ -23,7 +22,6 @@
             min-height: 100vh;
         }
         
-        /* حاوية بتصميم زجاجي فاخر (Glassmorphism) مع حدود بنفسجية متوهجة خفيفاً */
         .container { 
             max-width: 700px; 
             width: 100%; 
@@ -42,13 +40,12 @@
         .btn { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
         .btn:hover { background: #2563eb; box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
         
-        .btn-green { background: #8b5cf6; } /* تحويل زر إنشاء الحساب للبنفسجي الملكي الفخم */
+        .btn-green { background: #8b5cf6; } 
         .btn-green:hover { background: #7c3aed; box-shadow: 0 0 12px rgba(139, 92, 246, 0.5); }
         
-        .btn-red { background: #ef4444; } /* زر الخروج والإغلاق باللون الأحمر الجريء */
+        .btn-red { background: #ef4444; } 
         .btn-red:hover { background: #dc2626; box-shadow: 0 0 12px rgba(239, 68, 68, 0.5); }
         
-        /* زر التحسين الرئيسي بتدرج فخم يجمع الأزرق والبنفسجي والأحمر بانسجام */
         .btn-main { 
             width: 100%; 
             padding: 14px; 
@@ -63,9 +60,8 @@
         }
 
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #c4b5fd; } /* لون بنفسجي فاتح وراقي للعناوين */
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #c4b5fd; }
         
-        /* حقول الإدخال ذات الطابع السيبراني الداكن */
         input[type="text"], input[type="email"], input[type="password"], textarea, select { 
             width: 100%; 
             padding: 11px; 
@@ -76,7 +72,7 @@
             outline: none; 
             transition: all 0.3s; 
         }
-        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus, selectfocu, select:focus { 
+        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus, select:focus { 
             border-color: #8b5cf6; 
             box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
         }
@@ -85,7 +81,6 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(5px); }
         .modal-box { background: #1e293b; color: #f8fafc; padding: 25px; border-radius: 12px; width: 340px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(139, 92, 246, 0.4); }
         
-        /* صندوق النتائج بتصميم متوهج ذكي */
         .result-box { 
             display: none; 
             margin-top: 20px; 
@@ -95,6 +90,18 @@
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
             color: #f8fafc; 
             border-radius: 10px; 
+        }
+        
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .download-buttons form {
+            flex: 1;
+        }
+        .download-buttons button {
+            width: 100%;
         }
     </style>
 </head>
@@ -144,6 +151,18 @@
     <div id="resultBox" class="result-box">
         <h3 style="color: #a78bfa;">النتيجة الذكية:</h3>
         <div id="resultContent"></div>
+        
+        <!-- أزرار التحميل -->
+        <div class="download-buttons">
+            <form id="pdfForm" action="/download/pdf" method="POST" target="_blank">
+                <input type="hidden" name="content" id="pdfContentInput">
+                <button type="submit" class="btn btn-red">📥 تحميل PDF</button>
+            </form>
+            <form id="wordForm" action="/download/word" method="POST" target="_blank">
+                <input type="hidden" name="content" id="wordContentInput">
+                <button type="submit" class="btn">📥 تحميل Word</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -258,11 +277,18 @@
             .then(res => res.json())
             .then(data => {
                 if (data.formatted_html || data.result) {
-                    document.getElementById('resultContent').innerHTML = data.formatted_html || data.result;
+                    const resHtml = data.formatted_html || data.result;
+                    const rawTextVal = data.raw_text || data.result;
+
+                    document.getElementById('resultContent').innerHTML = resHtml;
                     document.getElementById('resultBox').style.display = 'block';
                     
+                    // تعبئة النتيجة في حقول الـ Forms الخاصة بالتحميل
+                    document.getElementById('pdfContentInput').value = resHtml;
+                    document.getElementById('wordContentInput').value = rawTextVal;
+                    
                     if (supabase && (data.formatted_html || data.raw_text)) {
-                        const payload = { job_title: jobTitle, cv_content: data.raw_text || data.result };
+                        const payload = { job_title: jobTitle, cv_content: rawTextVal };
                         if (currentUser) payload.user_id = currentUser.id;
                         supabase.from('cvs').insert([payload]).then(({error}) => { if(error) console.log(error); });
                     }

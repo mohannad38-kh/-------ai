@@ -5,6 +5,7 @@ import PyPDF2
 import docx
 import markdown
 import io
+from weasyprint import HTML
 
 app = Flask(__name__)
 
@@ -102,7 +103,7 @@ CV Content:
 def download_word():
     content = request.form.get('content', '')
     doc = docx.Document()
-    doc.add_heading('Optimized CV', 0)
+    doc.add_heading('Optimized CV - AI ATS', 0)
     for line in content.split('\n'):
         doc.add_paragraph(line)
         
@@ -115,6 +116,41 @@ def download_word():
         as_attachment=True,
         download_name='Optimized_Resume.docx',
         mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
+
+@app.route('/download/pdf', methods=['POST'])
+def download_pdf():
+    content = request.form.get('content', '')
+    
+    # تنسيق HTML أنيق لملف الـ PDF الناتج
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{ font-family: DejaVu Sans, Arial, sans-serif; padding: 20px; color: #111; line-height: 1.6; }}
+            h1, h2, h3 {{ color: #2563eb; }}
+            hr {{ border: 0; border-top: 1px solid #ccc; margin: 15px 0; }}
+        </style>
+    </head>
+    <body>
+        <h2>السيرة الذاتية المحسنة (ATS Optimized)</h2>
+        <hr>
+        <div>{content}</div>
+    </body>
+    </html>
+    """
+    
+    pdf_bytes = HTML(string=html_content).write_pdf()
+    file_stream = io.BytesIO(pdf_bytes)
+    file_stream.seek(0)
+    
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name='Optimized_Resume.pdf',
+        mimetype='application/pdf'
     )
 
 if __name__ == '__main__':
