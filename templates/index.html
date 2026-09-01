@@ -1,116 +1,23 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أداة تحسين السيرة الذاتية (ATS)</title>
-    <style>
-        * { box-sizing: border-box; font-family: sans-serif; }
-        body { background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { max-width: 700px; width: 100%; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn { background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-green { background: #10b981; }
-        .btn-red { background: #ef4444; }
-        .btn-main { width: 100%; padding: 12px; font-size: 16px; margin-top: 15px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="email"], input[type="password"], textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        textarea { height: 120px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 999; }
-        .modal-box { background: white; padding: 20px; border-radius: 8px; width: 320px; }
-        .result-box { display: none; margin-top: 20px; padding: 15px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 5px; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="header">
-        <div id="unauthSec">
-            <button class="btn" id="openLoginBtn">تسجيل الدخول</button>
-            <button class="btn btn-green" id="openSignUpBtn">إنشاء حساب</button>
-        </div>
-        <div id="authSec" style="display: none;">
-            <span id="userEmail" style="margin-left: 10px; font-weight: bold;"></span>
-            <button class="btn btn-red" id="logoutBtn">خروج</button>
-        </div>
-    </div>
-
-    <h2>تحسين السيرة الذاتية (ATS)</h2>
-
-    <form id="cvForm" onsubmit="return false;">
-        <div class="form-group">
-            <label>المسمى الوظيفي:</label>
-            <input type="text" id="jobTitle" name="job_title" required placeholder="مثال: Software Engineer">
-        </div>
-
-        <div class="form-group">
-            <label>اللغة المطلوبة:</label>
-            <select name="language" id="outLang">
-                <option value="English">الإنجليزية (English)</option>
-                <option value="Arabic">العربية (Arabic)</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>رفع ملف CV (PDF/DOCX):</label>
-            <input type="file" id="cvFile" name="cv_file" accept=".pdf,.docx">
-        </div>
-
-        <div class="form-group">
-            <label>أو الصق النص هنا:</label>
-            <textarea id="cvText" name="cv_text"></textarea>
-        </div>
-
-        <button type="button" class="btn btn-main" id="submitBtn">تحسين السيرة الذاتية الآن 🚀</button>
-    </form>
-
-    <div id="resultBox" class="result-box">
-        <h3>النتيجة:</h3>
-        <div id="resultContent"></div>
-    </div>
-</div>
-
-<!-- نافذة الدخول -->
-<div id="loginModal" class="modal">
-    <div class="modal-box">
-        <h3>تسجيل الدخول</h3>
-        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني"><br><br>
-        <input type="password" id="loginPassword" placeholder="كلمة المرور"><br><br>
-        <button class="btn" style="width: 100%;" id="loginSubmitBtn">دخول</button><br><br>
-        <button class="btn btn-red" style="width: 100%;" id="closeLoginBtn">إغلاق</button>
-    </div>
-</div>
-
-<!-- نافذة التسجيل -->
-<div id="signUpModal" class="modal">
-    <div class="modal-box">
-        <h3>إنشاء حساب جديد</h3>
-        <input type="email" id="signUpEmail" placeholder="البريد الإلكتروني"><br><br>
-        <input type="password" id="signUpPassword" placeholder="كلمة المرور"><br><br>
-        <button class="btn btn-green" style="width: 100%;" id="signUpSubmitBtn">إنشاء حساب</button><br><br>
-        <button class="btn btn-red" style="width: 100%;" id="closeSignUpBtn">إغلاق</button>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const loginModal = document.getElementById('loginModal');
         const signUpModal = document.getElementById('signUpModal');
 
+        // فتح وإغلاق النوافذ بشكل مباشر وبدون قيود
         document.getElementById('openLoginBtn').onclick = () => loginModal.style.display = 'flex';
         document.getElementById('closeLoginBtn').onclick = () => loginModal.style.display = 'none';
         
         document.getElementById('openSignUpBtn').onclick = () => signUpModal.style.display = 'flex';
         document.getElementById('closeSignUpBtn').onclick = () => signUpModal.style.display = 'none';
 
-        const SUPABASE_URL = "{{ supabase_url }}";
-        const SUPABASE_ANON_KEY = "{{ supabase_key }}";
+        // قراءة المتغيرات بأمان
+        const SUPABASE_URL = "{{ supabase_url|default('') }}";
+        const SUPABASE_ANON_KEY = "{{ supabase_key|default('') }}";
         let supabase = null;
         let currentUser = null;
 
-        if (window.supabase && SUPABASE_URL && SUPABASE_URL.startsWith('http')) {
+        if (window.supabase && SUPABASE_URL.trim() !== "" && SUPABASE_URL.startsWith('http')) {
             try {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 supabase.auth.getSession().then(({ data }) => {
@@ -118,8 +25,8 @@
                         currentUser = data.session.user;
                         updateUI();
                     }
-                });
-            } catch (e) { console.log(e); }
+                }).catch(err => console.log("Supabase error:", err));
+            } catch (e) { console.log("Supabase init failed:", e); }
         }
 
         function updateUI() {
@@ -133,10 +40,11 @@
             }
         }
 
+        // تسجيل الدخول
         document.getElementById('loginSubmitBtn').onclick = () => {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            if (!supabase) return alert("إعدادات Supabase غير متوفرة حالياً.");
+            if (!supabase) return alert("إعدادات Supabase غير مفعلة على السيرفر حالياً.");
             supabase.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
                 if (error) alert(error.message);
                 else {
@@ -147,25 +55,28 @@
             });
         };
 
+        // إنشاء حساب
         document.getElementById('signUpSubmitBtn').onclick = () => {
             const email = document.getElementById('signUpEmail').value;
             const password = document.getElementById('signUpPassword').value;
-            if (!supabase) return alert("إعدادات Supabase غير متوفرة حالياً.");
+            if (!supabase) return alert("إعدادات Supabase غير مفعلة على السيرفر حالياً.");
             supabase.auth.signUp({ email, password }).then(({ data, error }) => {
                 if (error) alert(error.message);
                 else {
-                    alert("تم إنشاء الحساب بنجاح!");
+                    alert("تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني.");
                     signUpModal.style.display = 'none';
                 }
             });
         };
 
+        // تسجيل الخروج
         document.getElementById('logoutBtn').onclick = () => {
             if (supabase) supabase.auth.signOut();
             currentUser = null;
             updateUI();
         };
 
+        // زر تحسين السيرة الذاتية
         document.getElementById('submitBtn').onclick = function() {
             const jobTitle = document.getElementById('jobTitle').value.trim();
             const cvText = document.getElementById('cvText').value.trim();
@@ -204,5 +115,3 @@
         };
     });
 </script>
-</body>
-</html>
