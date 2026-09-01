@@ -14,7 +14,7 @@ if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
 # تعريف النموذج المستقر
-model = genai.GenerativeModel('gemini-1.5-flash') if GEMINI_API_KEY else None
+model = genai.GenerativeModel('gemini-3.5-flash-lite') if GEMINI_API_KEY else None
 
 user_usage = {}
 FREE_LIMIT = 3
