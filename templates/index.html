@@ -5,15 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="pageTitle">أداة تحسين السيرة الذاتية الذكية (ATS Optimizer)</title>
     
-    <!-- Google Search Console -->
     <meta name="google-site-verification" content="op0OmiLtgn0YLuKBaDM5Rq1OHNz2n6yDJp043CR-LK0" />
-    
-    <!-- Google AdSense Script -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7946557086083356" crossorigin="anonymous"></script>
-
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <link rel="icon" href="{{ url_for('static', filename='logo.jpg') }}" type="image/jpeg">
 
     <style>
@@ -22,7 +16,7 @@
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
         .lang-switcher select { padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: bold; cursor: pointer; }
         .auth-bar { display: flex; gap: 10px; align-items: center; }
-        .auth-btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; z-index: 10; position: relative; }
+        .auth-btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; z-index: 10; }
         .login-btn { background-color: #2563eb; color: white; }
         .logout-btn { background-color: #ef4444; color: white; display: none; }
         .user-email { font-size: 13px; color: #64748b; font-weight: bold; }
@@ -33,26 +27,10 @@
         .ad-banner { background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 25px; }
         .ad-label { font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .cpa-widget-box {
-            background: #eff6ff;
-            border: 2px solid #3b82f6;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
+        .cpa-widget-box { background: #eff6ff; border: 2px solid #3b82f6; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 25px; }
         .cpa-widget-box h4 { margin: 0 0 10px 0; color: #1e40af; font-size: 16px; }
         .cpa-widget-box p { font-size: 13px; color: #475569; margin-bottom: 15px; }
-        .cpa-offer-btn {
-            display: inline-block;
-            background-color: #10b981;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-        }
+        .cpa-offer-btn { display: inline-block; background-color: #10b981; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; }
 
         label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; color: #1e293b; }
         input[type="text"], input[type="email"], input[type="password"], select, textarea, input[type="file"] { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
@@ -68,7 +46,7 @@
         .word-btn { background-color: #2980b9; }
         .pdf-btn { background-color: #c0392b; }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 9999; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 99999; }
         .modal-card { background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; }
         .pay-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px; text-align: center; border: none; cursor: pointer; }
         .close-btn { background-color: #e2e8f0; color: #475569; }
@@ -86,7 +64,7 @@
         </div>
         <div class="auth-bar">
             <span id="userEmail" class="user-email"></span>
-            <button id="authBtn" type="button" class="auth-btn login-btn">تسجيل الدخول / حساب جديد</button>
+            <button id="authBtn" type="button" class="auth-btn login-btn" onclick="openAuthModal()">تسجيل الدخول / حساب جديد</button>
             <button id="logoutBtn" type="button" class="auth-btn logout-btn" onclick="logout()">تسجيل الخروج</button>
         </div>
     </div>
@@ -152,7 +130,6 @@
     <div class="modal-card">
         <h2 id="modalTitle">🔒 وصلت للحد المجاني</h2>
         <p id="modalDesc">لقد استخدمت محاولاتك الـ 3 المجانية لهذا اليوم. اشترك الآن بـ <b>$5 شهرياً</b> للحصول على استخدام غير محدود!</p>
-        <div id="paypal-container-1"></div>
         <button class="pay-btn close-btn" onclick="closeModal('payModal')" id="closeBtnText">إغلاق</button>
     </div>
 </div>
@@ -186,23 +163,21 @@
       document.getElementById(id).style.display = 'none';
   }
 
-  // ربط الزر برمجياً لضمان عدم حدوث خطأ عند الضغط
-  document.getElementById('authBtn').addEventListener('click', openAuthModal);
-
-  window.addEventListener('DOMContentLoaded', async () => {
+  window.onload = function() {
       try {
           if (window.supabase) {
               supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-              const { data: { session } } = await supabase.auth.getSession();
-              if (session) {
-                  currentUser = session.user;
-                  updateAuthUI();
-              }
+              supabase.auth.getSession().then(({ data }) => {
+                  if (data && data.session) {
+                      currentUser = data.session.user;
+                      updateAuthUI();
+                  }
+              });
           }
       } catch (err) {
-          console.error("Supabase Init Error:", err);
+          console.error("Supabase error", err);
       }
-  });
+  };
 
   function updateAuthUI() {
       if (currentUser) {
@@ -216,7 +191,7 @@
       }
   }
 
-  async function signUp() {
+  function signUp() {
       const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
 
@@ -225,41 +200,44 @@
           return;
       }
 
-      if(!supabase) { alert("Supabase غير متصل"); return; }
+      if(!supabase) { alert("خدمة التسجيل غير متصلة"); return; }
 
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-          alert("خطأ في إنشاء الحساب: " + error.message);
-      } else {
-          alert("تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني للتأكيد.");
-          closeModal('authModal');
-      }
+      supabase.auth.signUp({ email, password }).then(({ data, error }) => {
+          if (error) {
+              alert("خطأ: " + error.message);
+          } else {
+              alert("تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني للتأكيد.");
+              closeModal('authModal');
+          }
+      });
   }
 
-  async function login() {
+  function login() {
       const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
 
-      if(!supabase) { alert("Supabase غير متصل"); return; }
+      if(!supabase) { alert("خدمة التسجيل غير متصلة"); return; }
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) alert("خطأ في تسجيل الدخول: " + error.message);
-      else {
-          currentUser = data.user;
-          updateAuthUI();
-          closeModal('authModal');
-      }
+      supabase.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
+          if (error) {
+              alert("خطأ في تسجيل الدخول: " + error.message);
+          } else {
+              currentUser = data.user;
+              updateAuthUI();
+              closeModal('authModal');
+          }
+      });
   }
 
-  async function logout() {
-      if(supabase) await supabase.auth.signOut();
+  function logout() {
+      if(supabase) supabase.auth.signOut();
       currentUser = null;
       updateAuthUI();
   }
 
-  async function saveCVToSupabase(jobTitle, content) {
+  function saveCVToSupabase(jobTitle, content) {
       if (!currentUser || !supabase) return;
-      await supabase.from('cvs').insert([
+      supabase.from('cvs').insert([
           { user_id: currentUser.id, job_title: jobTitle, cv_content: content }
       ]);
   }
@@ -339,7 +317,7 @@
       document.getElementById('closeBtnText').innerText = t.closeBtnText;
   }
 
-  async function optimizeCV() {
+  function optimizeCV() {
       if (!currentUser) {
           alert(document.getElementById('siteLang').value === 'ar' 
               ? "يرجى تسجيل الدخول أو إنشاء حساب جديد لاستخدام أداة تحسين السيرة الذاتية." 
@@ -359,33 +337,31 @@
       btn.innerText = t.processingBtn;
       btn.disabled = true;
 
-      try {
-          const response = await fetch('/optimize', {
-              method: 'POST',
-              body: formData
-          });
-          
-          const data = await response.json();
-          
-          if (response.status === 403) {
+      fetch('/optimize', {
+          method: 'POST',
+          body: formData
+      })
+      .then(res => res.json().then(data => ({ status: res.status, body: data })))
+      .then(res => {
+          if (res.status === 403) {
               document.getElementById('payModal').style.display = 'flex';
-          } else if (response.ok) {
-              latestRawText = data.raw_text;
-              resultText.innerHTML = data.formatted_html;
+          } else if (res.status === 200) {
+              latestRawText = res.body.raw_text;
+              resultText.innerHTML = res.body.formatted_html;
               document.getElementById('wordContentInput').value = latestRawText;
               resultBox.style.display = 'block';
 
               const jobTitle = document.getElementById('jobTitle').value;
-              await saveCVToSupabase(jobTitle, latestRawText);
+              saveCVToSupabase(jobTitle, latestRawText);
           } else {
-              alert(data.result || 'Error.');
+              alert(res.body.result || 'Error.');
           }
-      } catch (error) {
-          alert(t.errorConn);
-      } finally {
+      })
+      .catch(error => alert(t.errorConn))
+      .finally(() => {
           btn.innerText = t.submitBtn;
           btn.disabled = false;
-      }
+      });
   }
 
   function printPDF() {
