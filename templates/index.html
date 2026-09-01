@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="pageTitle">أداة تحسين السيرة الذاتية الذكية (ATS Optimizer)</title>
     
-    <!-- كود إثبات الملكية لـ Google Search Console -->
+    <!-- Google Search Console -->
     <meta name="google-site-verification" content="op0OmiLtgn0YLuKBaDM5Rq1OHNz2n6yDJp043CR-LK0" />
     
     <!-- Google AdSense Script -->
@@ -22,7 +22,7 @@
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
         .lang-switcher select { padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: bold; cursor: pointer; }
         .auth-bar { display: flex; gap: 10px; align-items: center; }
-        .auth-btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; z-index: 10; }
+        .auth-btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; z-index: 10; position: relative; }
         .login-btn { background-color: #2563eb; color: white; }
         .logout-btn { background-color: #ef4444; color: white; display: none; }
         .user-email { font-size: 13px; color: #64748b; font-weight: bold; }
@@ -86,7 +86,7 @@
         </div>
         <div class="auth-bar">
             <span id="userEmail" class="user-email"></span>
-            <button id="authBtn" type="button" class="auth-btn login-btn" onclick="openAuthModal()">تسجيل الدخول / حساب جديد</button>
+            <button id="authBtn" type="button" class="auth-btn login-btn">تسجيل الدخول / حساب جديد</button>
             <button id="logoutBtn" type="button" class="auth-btn logout-btn" onclick="logout()">تسجيل الخروج</button>
         </div>
     </div>
@@ -109,7 +109,7 @@
              data-ad-format="auto"
              data-full-width-responsive="true"></ins>
         <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
+             try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
         </script>
     </div>
 
@@ -170,14 +170,11 @@
     </div>
 </div>
 
-<script src="https://www.paypal.com/sdk/js?client-id=BAA3P27A4KUI6j0emFLdtIPLJgkxOksV99nQRgvOXJ-OneF1_MuGSAEbuvGA2M89OQkvbxHYCJrXkjsQi8&components=hosted-buttons&disable-funding=venmo&currency=USD"></script>
-
 <script>
-  // تهيئة Supabase
   const SUPABASE_URL = "https://ojzyjmfauubzvhunetyp.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qenlqbWZhdXVienZodW5ldHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNTg0NzksImV4cCI6MjEwMzgzNDQ3OX0.wh48A04yGiPa6oG_fAGyM2JlgLZjqGvQ2xM8KbmeOeg";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+  
+  let supabase = null;
   let currentUser = null;
   let latestRawText = "";
 
@@ -189,21 +186,21 @@
       document.getElementById(id).style.display = 'none';
   }
 
-  window.addEventListener('load', async () => {
-      try {
-          if (window.paypal && paypal.HostedButtons) {
-              paypal.HostedButtons({
-                  hostedButtonId: "YOUR_BUTTON_ID",
-              }).render("#paypal-container-1");
-          }
-      } catch (e) {
-          console.log("PayPal init skipped");
-      }
+  // ربط الزر برمجياً لضمان عدم حدوث خطأ عند الضغط
+  document.getElementById('authBtn').addEventListener('click', openAuthModal);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-          currentUser = session.user;
-          updateAuthUI();
+  window.addEventListener('DOMContentLoaded', async () => {
+      try {
+          if (window.supabase) {
+              supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session) {
+                  currentUser = session.user;
+                  updateAuthUI();
+              }
+          }
+      } catch (err) {
+          console.error("Supabase Init Error:", err);
       }
   });
 
@@ -228,6 +225,8 @@
           return;
       }
 
+      if(!supabase) { alert("Supabase غير متصل"); return; }
+
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
           alert("خطأ في إنشاء الحساب: " + error.message);
@@ -240,6 +239,9 @@
   async function login() {
       const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
+
+      if(!supabase) { alert("Supabase غير متصل"); return; }
+
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) alert("خطأ في تسجيل الدخول: " + error.message);
       else {
@@ -250,13 +252,13 @@
   }
 
   async function logout() {
-      await supabase.auth.signOut();
+      if(supabase) await supabase.auth.signOut();
       currentUser = null;
       updateAuthUI();
   }
 
   async function saveCVToSupabase(jobTitle, content) {
-      if (!currentUser) return;
+      if (!currentUser || !supabase) return;
       await supabase.from('cvs').insert([
           { user_id: currentUser.id, job_title: jobTitle, cv_content: content }
       ]);
