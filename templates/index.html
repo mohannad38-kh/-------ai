@@ -8,13 +8,24 @@
     <!-- كود إثبات الملكية لـ Google Search Console -->
     <meta name="google-site-verification" content="op0OmiLtgn0YLuKBaDM5Rq1OHNz2n6yDJp043CR-LK0" />
     
+    <!-- Google AdSense Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7946557086083356" crossorigin="anonymous"></script>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <link rel="icon" href="{{ url_for('static', filename='logo.jpg') }}" type="image/jpeg">
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; background-color: #f1f5f9; padding: 20px; color: #334155; }
         .container { max-width: 850px; margin: auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .lang-switcher { text-align: left; margin-bottom: 15px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
         .lang-switcher select { padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: bold; cursor: pointer; }
+        .auth-bar { display: flex; gap: 10px; align-items: center; }
+        .auth-btn { padding: 6px 14px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .login-btn { background-color: #2563eb; color: white; }
+        .logout-btn { background-color: #ef4444; color: white; display: none; }
+        .user-email { font-size: 13px; color: #64748b; font-weight: bold; }
         
         h1 { text-align: center; color: #0f172a; margin-bottom: 5px; }
         p.subtitle { text-align: center; color: #64748b; margin-bottom: 25px; }
@@ -23,7 +34,7 @@
         .ad-label { font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
         label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; color: #1e293b; }
-        input[type="text"], select, textarea, input[type="file"] { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        input[type="text"], input[type="email"], input[type="password"], select, textarea, input[type="file"] { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         textarea { height: 140px; resize: vertical; }
         .divider { text-align: center; font-weight: bold; margin: 15px 0; color: #94a3b8; }
         button.submit-btn { margin-top: 20px; width: 100%; background-color: #2563eb; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
@@ -43,26 +54,31 @@
         .modal-card h2 { color: #0f172a; margin-bottom: 10px; }
         .modal-card p { color: #64748b; margin-bottom: 20px; }
         .pay-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px; text-align: center; border: none; cursor: pointer; }
-        .stripe-btn { background-color: #635bff; color: white; }
-        .paypal-btn { background-color: #ffc439; color: #111; }
         .close-btn { background-color: #e2e8f0; color: #475569; }
 
         @media print {
             body * { visibility: hidden; }
             #resultText, #resultText * { visibility: visible; }
             #resultText { position: absolute; left: 0; top: 0; width: 100%; border: none; background: white; }
-            .download-container, form, h1, .subtitle, .ad-banner, .lang-switcher { display: none; }
+            .download-container, form, h1, .subtitle, .ad-banner, .top-bar { display: none; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="lang-switcher">
-        <select id="siteLang" onchange="changeWebsiteLanguage()">
-            <option value="ar" selected>العربية 🇸🇦</option>
-            <option value="en">English 🇺🇸</option>
-        </select>
+    <div class="top-bar">
+        <div class="lang-switcher">
+            <select id="siteLang" onchange="changeWebsiteLanguage()">
+                <option value="ar" selected>العربية 🇸🇦</option>
+                <option value="en">English 🇺🇸</option>
+            </select>
+        </div>
+        <div class="auth-bar">
+            <span id="userEmail" class="user-email"></span>
+            <button id="authBtn" class="auth-btn login-btn" onclick="openAuthModal()">تسجيل الدخول / حساب جديد</button>
+            <button id="logoutBtn" class="auth-btn logout-btn" onclick="logout()">تسجيل الخروج</button>
+        </div>
     </div>
 
     <h1 id="mainTitle">أداة تحسين السيرة الذاتية الشاملة (ATS)</h1>
@@ -70,7 +86,6 @@
 
     <div class="ad-banner">
         <div class="ad-label" id="adLabelText">إعلان ممول / Sponsored Ad</div>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7946557086083356" crossorigin="anonymous"></script>
         <ins class="adsbygoogle"
              style="display:block"
              data-ad-client="ca-pub-7946557086083356"
@@ -117,28 +132,121 @@
     </div>
 </div>
 
+<!-- نافذة الاشتراك / الدفع -->
 <div class="modal-overlay" id="payModal">
     <div class="modal-card">
         <h2 id="modalTitle">🔒 وصلت للحد المجاني</h2>
         <p id="modalDesc">لقد استخدمت محاولاتك الـ 3 المجانية لهذا اليوم. اشترك الآن بـ <b>$5 شهرياً</b> للحصول على استخدام غير محدود!</p>
         
-        <!-- حاوية زر PayPal الرسمي -->
+        <div style="margin: 15px 0;">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-7946557086083356"
+                 data-ad-slot="1234567890"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
         <div id="paypal-container-1"></div>
-        
-        <button class="pay-btn close-btn" onclick="closeModal()" id="closeBtnText">إغلاق</button>
+        <button class="pay-btn close-btn" onclick="closeModal('payModal')" id="closeBtnText">إغلاق</button>
     </div>
 </div>
 
-<!-- كود تفعيل PayPal SDK -->
+<!-- نافذة تسجيل الدخول وانشاء حساب -->
+<div class="modal-overlay" id="authModal">
+    <div class="modal-card">
+        <h2 id="authModalTitle">تسجيل الدخول / إنشاء حساب</h2>
+        <input type="email" id="authEmail" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;">
+        <input type="password" id="authPassword" placeholder="كلمة المرور" style="margin-bottom: 15px;">
+        
+        <button class="pay-btn login-btn" onclick="login()">تسجيل الدخول</button>
+        <button class="pay-btn" style="background-color: #10b981; color: white;" onclick="signUp()">إنشاء حساب جديد</button>
+        <button class="pay-btn close-btn" onclick="closeModal('authModal')">إلغاء</button>
+    </div>
+</div>
+
 <script src="https://www.paypal.com/sdk/js?client-id=BAA3P27A4KUI6j0emFLdtIPLJgkxOksV99nQRgvOXJ-OneF1_MuGSAEbuvGA2M89OQkvbxHYCJrXkjsQi8&components=hosted-buttons&disable-funding=venmo&currency=USD"></script>
 <script>
   paypal.HostedButtons({
     hostedButtonId: "معرّف_الزر_الخاص_بك_من_باي_بال",
   }).render("#paypal-container-1");
 
+  // تهيئة Supabase
+  const SUPABASE_URL = "https://ojzyjmfauubzvhunetyp.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qenlqbWZhdXVienZodW5ldHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNTg0NzksImV4cCI6MjEwMzgzNDQ3OX0.wh48A04yGiPa6oG_fAGyM2JlgLZjqGvQ2xM8KbmeOeg";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
   let latestRawText = "";
 
-  // نصوص الترجمة للغتين العربية والإنجليزية
+  // تحقق من جلسة المستخدم عند فتح الصفحة
+  window.addEventListener('load', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+          currentUser = session.user;
+          updateAuthUI();
+      }
+  });
+
+  function updateAuthUI() {
+      if (currentUser) {
+          document.getElementById('userEmail').innerText = currentUser.email;
+          document.getElementById('authBtn').style.display = 'none';
+          document.getElementById('logoutBtn').style.display = 'inline-block';
+      } else {
+          document.getElementById('userEmail').innerText = '';
+          document.getElementById('authBtn').style.display = 'inline-block';
+          document.getElementById('logoutBtn').style.display = 'none';
+      }
+  }
+
+  function openAuthModal() {
+      document.getElementById('authModal').style.display = 'flex';
+  }
+
+  function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+  }
+
+  async function signUp() {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) alert("خطأ في إنشاء الحساب: " + error.message);
+      else {
+          alert("تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني للتأكيد إن طُلب ذلك.");
+          closeModal('authModal');
+      }
+  }
+
+  async function login() {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) alert("خطأ في تسجيل الدخول: " + error.message);
+      else {
+          currentUser = data.user;
+          updateAuthUI();
+          closeModal('authModal');
+      }
+  }
+
+  async function logout() {
+      await supabase.auth.signOut();
+      currentUser = null;
+      updateAuthUI();
+  }
+
+  async function saveCVToSupabase(jobTitle, content) {
+      if (!currentUser) return;
+      await supabase.from('cvs').insert([
+          { user_id: currentUser.id, job_title: jobTitle, cv_content: content }
+      ]);
+  }
+
   const translations = {
       ar: {
           dir: "rtl",
@@ -160,8 +268,6 @@
           pdfBtnText: "تحميل كملف PDF 📑",
           modalTitle: "🔒 وصلت للحد المجاني",
           modalDesc: "لقد استخدمت محاولاتك الـ 3 المجانية لهذا اليوم. اشترك الآن بـ <b>$5 شهرياً</b> للحصول على استخدام غير محدود!",
-          stripeBtnText: "الدفع بواسطة (Apple Pay / Google Pay / Card)",
-          paypalBtnText: "الدفع بواسطة PayPal",
           closeBtnText: "إغلاق",
           errorConn: "حدث خطأ في الاتصال بالخادم."
       },
@@ -185,8 +291,6 @@
           pdfBtnText: "Download as PDF 📑",
           modalTitle: "🔒 Free Limit Reached",
           modalDesc: "You have used your 3 free tries for today. Subscribe now for <b>$5/month</b> for unlimited access!",
-          stripeBtnText: "Pay with (Apple Pay / Google Pay / Card)",
-          paypalBtnText: "Pay with PayPal",
           closeBtnText: "Close",
           errorConn: "An error occurred while connecting to the server."
       }
@@ -245,6 +349,10 @@
               resultText.innerHTML = data.formatted_html;
               document.getElementById('wordContentInput').value = latestRawText;
               resultBox.style.display = 'block';
+
+              // حفظ النتيجة في Supabase إذا كان المستخدم مسجلاً
+              const jobTitle = document.getElementById('jobTitle').value;
+              await saveCVToSupabase(jobTitle, latestRawText);
           } else {
               alert(data.result || 'Error.');
           }
@@ -258,10 +366,6 @@
 
   function printPDF() {
       window.print();
-  }
-
-  function closeModal() {
-      document.getElementById('payModal').style.display = 'none';
   }
 </script>
 
