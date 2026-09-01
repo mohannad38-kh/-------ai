@@ -9,9 +9,8 @@ import io
 app = Flask(__name__)
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
-# قاموس لتتبع الاستخدام المجاني بناءً على عنوان IP
 user_usage = {}
 FREE_LIMIT = 3
 
@@ -31,7 +30,12 @@ def extract_text_from_docx(file_stream):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # إرسال المتغيرات للواجهة كي لا تتوقف السكربتات في JS
+    return render_template(
+        'index.html',
+        supabase_url=os.environ.get("SUPABASE_URL", ""),
+        supabase_key=os.environ.get("SUPABASE_ANON_KEY", "")
+    )
 
 @app.route('/optimize', methods=['POST'])
 def optimize_cv():
@@ -40,10 +44,13 @@ def optimize_cv():
 
     if current_usage >= FREE_LIMIT:
         return jsonify({
-            'result': 'لقد استهلكت محاولاتك الـ 3 المجانية لهذا اليوم. يرجى الاشتراك للحصول على استخدام غير محدود!'
+            'result': 'لقد استهلكت محاولاتك الـ 3 المجانية لهذا اليوم.'
         }), 403
 
     try:
+        if not client:
+            return jsonify({'result': 'مفتاح GEMINI_API_KEY غير معرف في البيئة.'}), 500
+
         job_title = request.form.get('job_title', '')
         language = request.form.get('language', 'English')
         cv_text = request.form.get('cv_text', '')
@@ -91,7 +98,6 @@ CV Content:
     except Exception as e:
         return jsonify({'result': f"حدث خطأ أثناء معالجة الطلب: {str(e)}"}), 500
 
-# مسار لتحميل النتيجة كملف Word (يعمل بكفاءة عالية)
 @app.route('/download/word', methods=['POST'])
 def download_word():
     content = request.form.get('content', '')

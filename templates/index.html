@@ -38,7 +38,7 @@
 
     <h2>تحسين السيرة الذاتية (ATS)</h2>
 
-    <form id="cvForm">
+    <form id="cvForm" onsubmit="return false;">
         <div class="form-group">
             <label>المسمى الوظيفي:</label>
             <input type="text" id="jobTitle" name="job_title" required placeholder="مثال: Software Engineer">
@@ -93,119 +93,116 @@
     </div>
 </div>
 
-<!-- تحميل Supabase والسكربت في النهاية لضمان عمل العناصر -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ربط العناصر مباشرة لتجنب أي تعليق
-    const loginModal = document.getElementById('loginModal');
-    const signUpModal = document.getElementById('signUpModal');
+    document.addEventListener("DOMContentLoaded", function() {
+        const loginModal = document.getElementById('loginModal');
+        const signUpModal = document.getElementById('signUpModal');
 
-    document.getElementById('openLoginBtn').onclick = () => loginModal.style.display = 'flex';
-    document.getElementById('closeLoginBtn').onclick = () => loginModal.style.display = 'none';
-    
-    document.getElementById('openSignUpBtn').onclick = () => signUpModal.style.display = 'flex';
-    document.getElementById('closeSignUpBtn').onclick = () => signUpModal.style.display = 'none';
+        document.getElementById('openLoginBtn').onclick = () => loginModal.style.display = 'flex';
+        document.getElementById('closeLoginBtn').onclick = () => loginModal.style.display = 'none';
+        
+        document.getElementById('openSignUpBtn').onclick = () => signUpModal.style.display = 'flex';
+        document.getElementById('closeSignUpBtn').onclick = () => signUpModal.style.display = 'none';
 
-    // تهيئة Supabase بأمان
-    const SUPABASE_URL = "{{ supabase_url|default('') }}";
-    const SUPABASE_ANON_KEY = "{{ supabase_key|default('') }}";
-    let supabase = null;
-    let currentUser = null;
+        const SUPABASE_URL = "{{ supabase_url }}";
+        const SUPABASE_ANON_KEY = "{{ supabase_key }}";
+        let supabase = null;
+        let currentUser = null;
 
-    if (window.supabase && SUPABASE_URL.startsWith('http')) {
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            supabase.auth.getSession().then(({ data }) => {
-                if (data && data.session) {
-                    currentUser = data.session.user;
+        if (window.supabase && SUPABASE_URL && SUPABASE_URL.startsWith('http')) {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                supabase.auth.getSession().then(({ data }) => {
+                    if (data && data.session) {
+                        currentUser = data.session.user;
+                        updateUI();
+                    }
+                });
+            } catch (e) { console.log(e); }
+        }
+
+        function updateUI() {
+            if (currentUser) {
+                document.getElementById('unauthSec').style.display = 'none';
+                document.getElementById('authSec').style.display = 'block';
+                document.getElementById('userEmail').innerText = currentUser.email;
+            } else {
+                document.getElementById('unauthSec').style.display = 'block';
+                document.getElementById('authSec').style.display = 'none';
+            }
+        }
+
+        document.getElementById('loginSubmitBtn').onclick = () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            if (!supabase) return alert("إعدادات Supabase غير متوفرة حالياً.");
+            supabase.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
+                if (error) alert(error.message);
+                else {
+                    currentUser = data.user;
                     updateUI();
+                    loginModal.style.display = 'none';
                 }
             });
-        } catch (e) { console.log(e); }
-    }
+        };
 
-    function updateUI() {
-        if (currentUser) {
-            document.getElementById('unauthSec').style.display = 'none';
-            document.getElementById('authSec').style.display = 'block';
-            document.getElementById('userEmail').innerText = currentUser.email;
-        } else {
-            document.getElementById('unauthSec').style.display = 'block';
-            document.getElementById('authSec').style.display = 'none';
-        }
-    }
-
-    document.getElementById('loginSubmitBtn').onclick = () => {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        if (!supabase) return alert("إعدادات Supabase غير مكتملة في الباك إيند.");
-        supabase.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
-            if (error) alert(error.message);
-            else {
-                currentUser = data.user;
-                updateUI();
-                loginModal.style.display = 'none';
-            }
-        });
-    };
-
-    document.getElementById('signUpSubmitBtn').onclick = () => {
-        const email = document.getElementById('signUpEmail').value;
-        const password = document.getElementById('signUpPassword').value;
-        if (!supabase) return alert("إعدادات Supabase غير مكتملة في الباك إيند.");
-        supabase.auth.signUp({ email, password }).then(({ data, error }) => {
-            if (error) alert(error.message);
-            else {
-                alert("تم إنشاء الحساب بنجاح!");
-                signUpModal.style.display = 'none';
-            }
-        });
-    };
-
-    document.getElementById('logoutBtn').onclick = () => {
-        if (supabase) supabase.auth.signOut();
-        currentUser = null;
-        updateUI();
-    };
-
-    // زر تحسين السيرة الذاتية
-    document.getElementById('submitBtn').onclick = function() {
-        const jobTitle = document.getElementById('jobTitle').value;
-        const cvText = document.getElementById('cvText').value;
-        const cvFile = document.getElementById('cvFile').files.length;
-
-        if (!jobTitle) return alert("يرجى إدخال المسمى الوظيفي");
-        if (!cvText && cvFile === 0) return alert("يرجى وضع النص أو رفع ملف");
-
-        const btn = this;
-        btn.disabled = true;
-        btn.innerText = "جاري التحسين... ⏳";
-
-        const formData = new FormData(document.getElementById('cvForm'));
-
-        fetch('/optimize', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-            if (data.formatted_html || data.result) {
-                document.getElementById('resultContent').innerHTML = data.formatted_html || data.result;
-                document.getElementById('resultBox').style.display = 'block';
-                
-                // حفظ البيانات في Supabase
-                if (supabase) {
-                    const payload = { job_title: jobTitle, cv_content: data.raw_text || data.result };
-                    if (currentUser) payload.user_id = currentUser.id;
-                    supabase.from('cvs').insert([payload]).then(({error}) => { if(error) console.log(error); });
+        document.getElementById('signUpSubmitBtn').onclick = () => {
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            if (!supabase) return alert("إعدادات Supabase غير متوفرة حالياً.");
+            supabase.auth.signUp({ email, password }).then(({ data, error }) => {
+                if (error) alert(error.message);
+                else {
+                    alert("تم إنشاء الحساب بنجاح!");
+                    signUpModal.style.display = 'none';
                 }
-            } else {
-                alert("حدثت مشكلة أثناء المعالجة.");
-            }
-        })
-        .catch(err => alert("حدث خطأ بالاتصال مع السيرفر."))
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerText = "تحسين السيرة الذاتية الآن 🚀";
-        });
-    };
+            });
+        };
+
+        document.getElementById('logoutBtn').onclick = () => {
+            if (supabase) supabase.auth.signOut();
+            currentUser = null;
+            updateUI();
+        };
+
+        document.getElementById('submitBtn').onclick = function() {
+            const jobTitle = document.getElementById('jobTitle').value.trim();
+            const cvText = document.getElementById('cvText').value.trim();
+            const cvFile = document.getElementById('cvFile').files.length;
+
+            if (!jobTitle) return alert("يرجى إدخال المسمى الوظيفي");
+            if (!cvText && cvFile === 0) return alert("يرجى وضع النص أو رفع ملف");
+
+            const btn = this;
+            btn.disabled = true;
+            btn.innerText = "جاري التحسين... ⏳";
+
+            const formData = new FormData(document.getElementById('cvForm'));
+
+            fetch('/optimize', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.formatted_html || data.result) {
+                    document.getElementById('resultContent').innerHTML = data.formatted_html || data.result;
+                    document.getElementById('resultBox').style.display = 'block';
+                    
+                    if (supabase && (data.formatted_html || data.raw_text)) {
+                        const payload = { job_title: jobTitle, cv_content: data.raw_text || data.result };
+                        if (currentUser) payload.user_id = currentUser.id;
+                        supabase.from('cvs').insert([payload]).then(({error}) => { if(error) console.log(error); });
+                    }
+                } else {
+                    alert("حدثت مشكلة أثناء المعالجة.");
+                }
+            })
+            .catch(err => alert("حدث خطأ بالاتصال مع السيرفر."))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = "تحسين السيرة الذاتية الآن 🚀";
+            });
+        };
+    });
 </script>
 </body>
 </html>
