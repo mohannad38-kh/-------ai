@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="pageTitle">أداة تحسين السيرة الذاتية الذكية (ATS Optimizer)</title>
     
-    <meta name="google-site-verification" content="op0OmiLtgn0YLuKBaDM5Rq1OHNz2n6yDJp043CR-LK0" />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7946557086083356" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="icon" href="{{ url_for('static', filename='logo.jpg') }}" type="image/jpeg">
 
@@ -23,14 +21,6 @@
         
         h1 { text-align: center; color: #0f172a; margin-bottom: 5px; }
         p.subtitle { text-align: center; color: #64748b; margin-bottom: 25px; }
-        
-        .ad-banner { background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 25px; }
-        .ad-label { font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-
-        .cpa-widget-box { background: #eff6ff; border: 2px solid #3b82f6; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 25px; }
-        .cpa-widget-box h4 { margin: 0 0 10px 0; color: #1e40af; font-size: 16px; }
-        .cpa-widget-box p { font-size: 13px; color: #475569; margin-bottom: 15px; }
-        .cpa-offer-btn { display: inline-block; background-color: #10b981; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; }
 
         label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; color: #1e293b; }
         input[type="text"], input[type="email"], input[type="password"], select, textarea, input[type="file"] { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
@@ -71,25 +61,6 @@
 
     <h1 id="mainTitle">أداة تحسين السيرة الذاتية الشاملة (ATS)</h1>
     <p class="subtitle" id="mainSubtitle">تحسين السيرة الذاتية، دعم الـ PDF، التصدير، وتوافق الفرز الآلي</p>
-
-    <div class="cpa-widget-box">
-        <h4>🎁 عرض مميز للمستخدمين</h4>
-        <p>شارِك في العرض للحصول على فرص ومكافآت مجانية ودعم استمرار الأداة:</p>
-        <a href="https://trianglerockers.com/1911667" target="_blank" class="cpa-offer-btn">اضغط هنا لاستعراض العرض والاشتراك 🚀</a>
-    </div>
-
-    <div class="ad-banner">
-        <div class="ad-label" id="adLabelText">إعلان ممول / Sponsored Ad</div>
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-7946557086083356"
-             data-ad-slot="1234567890"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
-        </script>
-    </div>
 
     <form id="optimizeForm">
         <label for="jobTitle" id="lblJobTitle">المسمى الوظيفي المستهدف:</label>
@@ -248,7 +219,6 @@
           title: "أداة تحسين السيرة الذاتية الذكية (ATS Optimizer)",
           mainTitle: "أداة تحسين السيرة الذاتية الشاملة (ATS)",
           mainSubtitle: "تحسين السيرة الذاتية، دعم الـ PDF، التصدير، وتوافق الفرز الآلي",
-          adLabelText: "إعلان ممول / Sponsored Ad",
           lblJobTitle: "المسمى الوظيفي المستهدف:",
           jobPlaceholder: "مثال: AI & Robotics Engineer",
           lblLang: "لغة النتيجة المطلوبة:",
@@ -271,7 +241,6 @@
           title: "AI ATS Resume Optimizer Tool",
           mainTitle: "Comprehensive ATS Resume Optimizer",
           mainSubtitle: "Resume Optimization, PDF Support, Export, and ATS Compatibility",
-          adLabelText: "Sponsored Ad",
           lblJobTitle: "Target Job Title:",
           jobPlaceholder: "e.g. AI & Robotics Engineer",
           lblLang: "Desired Output Language:",
@@ -300,7 +269,6 @@
       document.getElementById('pageTitle').innerText = t.title;
       document.getElementById('mainTitle').innerText = t.mainTitle;
       document.getElementById('mainSubtitle').innerText = t.mainSubtitle;
-      document.getElementById('adLabelText').innerText = t.adLabelText;
       document.getElementById('lblJobTitle').innerText = t.lblJobTitle;
       document.getElementById('jobTitle').placeholder = t.jobPlaceholder;
       document.getElementById('lblLang').innerText = t.lblLang;
