@@ -138,7 +138,7 @@
     <h2 style="color: #f1f5f9; text-align: center; margin-bottom: 10px; letter-spacing: 0.5px;" data-i18n="mainHeader">✨ منصة ذكاء سيرة الذاتية (AI-ATS)</h2>
     
     <div style="text-align: center;">
-        <div id="statusBadge" class="badge-status">💎 حالة الاشتراك: <span id="statusText" style="color: #38bdf8;">جار التحقق...</span></div>
+        <div id="statusBadge" class="badge-status">💎 حالة الحساب: <span id="statusText" style="color: #38bdf8;">جار التحقق...</span></div>
     </div>
 
     <form id="cvForm" onsubmit="return false;">
@@ -220,9 +220,9 @@
 <!-- نافذة انتهاء الاشتراك أو الحاجة للاشتراك -->
 <div id="paymentModal" class="modal">
     <div class="modal-box" style="width: 390px;">
-        <h3 id="paymentModalTitle" style="color: #ef4444; margin-top: 0;">🔒 انتهى اشتراكك الشهري</h3>
+        <h3 id="paymentModalTitle" style="color: #ef4444; margin-top: 0;">🔒 انتهت محاولاتك المجانية</h3>
         <p id="paymentModalDesc" style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
-            لقد انتهت مدة اشتراكك الشهري. جدد اشتراكك الآن لتستمتع بالاستخدام غير المحدود طوال الشهر القادم:
+            لقد استخدمت محاولاتك المجانية. يرجى الاشتراك في الخدمة لاستئناف الاستخدام غير المحدود طوال الشهر:
         </p>
         
         <!-- زر باي بال -->
@@ -345,7 +345,28 @@
 
     let currentUser = null;
 
-    // دوال إدارة الاشتراك الشهري
+    // دوال إدارة المحاولات المجانية والاشتراك الشهري (محدثة بدعم كامل للحسابات الجديدة)
+    function getUserCredits() {
+        const key = currentUser ? `free_credits_${currentUser.email}` : 'free_credits_guest';
+        let credits = localStorage.getItem(key);
+        if (credits === null || isNaN(credits)) {
+            credits = 2; // منح محاولتين مجانيتين تلقائياً للمستخدم الجديد
+            localStorage.setItem(key, credits);
+        }
+        return parseInt(credits);
+    }
+
+    function useFreeCredit() {
+        const key = currentUser ? `free_credits_${currentUser.email}` : 'free_credits_guest';
+        let credits = getUserCredits();
+        if (credits > 0) {
+            credits -= 1;
+            localStorage.setItem(key, credits);
+            return true;
+        }
+        return false;
+    }
+
     function getSubscriptionExpiry() {
         const key = currentUser ? `sub_expiry_${currentUser.email}` : 'sub_expiry_guest';
         const expiryStr = localStorage.getItem(key);
@@ -358,9 +379,14 @@
         return Date.now() < expiryTime;
     }
 
+    function canUserUseService() {
+        if (isSubscriptionActive()) return true;
+        if (getUserCredits() > 0) return true;
+        return false;
+    }
+
     function activateMonthlySubscription() {
         const key = currentUser ? `sub_expiry_${currentUser.email}` : 'sub_expiry_guest';
-        // إضافة 30 يوماً بالمللي ثانية (30 يوم * 24 ساعة * 60 دقيقة * 60 ثانية * 1000)
         const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
         const newExpiry = Date.now() + thirtyDaysMs;
         localStorage.setItem(key, newExpiry);
@@ -374,13 +400,14 @@
             statusSpan.innerText = `مشترك (ينتهي في ${expiryDate.toLocaleDateString()})`;
             statusSpan.style.color = '#34d399'; // أخضر نشط
         } else {
-            const expiryTime = getSubscriptionExpiry();
-            if (expiryTime > 0) {
-                statusSpan.innerText = "انتهى الاشتراك الشهري ❌";
+            const credits = getUserCredits();
+            if (credits > 0) {
+                statusSpan.innerText = `حساب مجاني (${credits} محاولات متبقية)`;
+                statusSpan.style.color = '#38bdf8'; // أزرق للمحاولات المجانية
             } else {
-                statusSpan.innerText = "غير مشترك (يرجى الاشتراك للاستخدام)";
+                statusSpan.innerText = "انتهت محاولاتك المجانية (يرجى الاشتراك)";
+                statusSpan.style.color = '#f87171'; // أحمر منتهي
             }
-            statusSpan.style.color = '#f87171'; // أحمر منتهي
         }
     }
 
@@ -400,17 +427,18 @@
             return;
         }
 
-        if (!isSubscriptionActive()) {
-            const expiryTime = getSubscriptionExpiry();
-            if (expiryTime > 0) {
-                document.getElementById('paymentModalTitle').innerText = "🔒 انتهى اشتراكك الشهري";
-                document.getElementById('paymentModalDesc').innerText = "لقد انتهت مدة اشتراكك الشهري لهذا الشهر. يرجى تجديد الاشتراك لاستئناف الاستخدام غير المحدود:";
-            } else {
-                document.getElementById('paymentModalTitle').innerText = "🔒 الاشتراك الشهري مطلوب";
-                document.getElementById('paymentModalDesc').innerText = "يرجى الاشتراك في الخدمة لتتمكن من استخدام المنصة طوال الشهر بلا حدود:";
-            }
+        // التحقق هل يملك صلاحية الاستخدام (اشتراك نشط أو محاولات مجانية متبقية)
+        if (!canUserUseService()) {
+            document.getElementById('paymentModalTitle').innerText = "🔒 انتهت محاولاتك المجانية";
+            document.getElementById('paymentModalDesc').innerText = "لقد استخدمت محاولاتك المجانية. يرجى الاشتراك في الخدمة لاستئناف الاستخدام غير المحدود:";
             document.getElementById('paymentModal').style.display = 'flex';
             return;
+        }
+
+        // إذا لم يكن مشتركاً ولديه محاولات مجانية، نقوم بخصم محاولة
+        if (!isSubscriptionActive()) {
+            useFreeCredit();
+            updateStatusDisplay();
         }
 
         executeSubmit();
@@ -428,7 +456,6 @@
             return;
         }
 
-        // تفعيل الاشتراك الشهري لمدة 30 يوم
         activateMonthlySubscription();
 
         alert("تم تأكيد رقم الحركة بنجاح! تم تفعيل اشتراكك الشهري غير المحدود لمدة 30 يوماً قادمة. شكراً لك! 🎉");
