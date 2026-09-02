@@ -45,6 +45,9 @@
         
         .btn-red { background: #ef4444; } 
         .btn-red:hover { background: #dc2626; box-shadow: 0 0 12px rgba(239, 68, 68, 0.5); }
+
+        .btn-cliq { background: #0ea5e9; color: white; }
+        .btn-cliq:hover { background: #0284c7; box-shadow: 0 0 12px rgba(14, 165, 233, 0.5); }
         
         .btn-main { 
             width: 100%; 
@@ -79,7 +82,7 @@
         textarea { height: 120px; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(5px); }
-        .modal-box { background: #1e293b; color: #f8fafc; padding: 25px; border-radius: 12px; width: 340px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(139, 92, 246, 0.4); text-align: center; }
+        .modal-box { background: #1e293b; color: #f8fafc; padding: 25px; border-radius: 12px; width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(139, 92, 246, 0.4); text-align: center; }
         
         .result-box { 
             display: none; 
@@ -103,6 +106,16 @@
         .download-buttons button {
             width: 100%;
         }
+        .badge-status {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid #8b5cf6;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #c4b5fd;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -122,7 +135,11 @@
         </div>
     </div>
 
-    <h2 style="color: #f1f5f9; text-align: center; margin-bottom: 25px; letter-spacing: 0.5px;" data-i18n="mainHeader">✨ منصة ذكاء سيرة الذاتية (AI-ATS)</h2>
+    <h2 style="color: #f1f5f9; text-align: center; margin-bottom: 10px; letter-spacing: 0.5px;" data-i18n="mainHeader">✨ منصة ذكاء سيرة الذاتية (AI-ATS)</h2>
+    
+    <div style="text-align: center;">
+        <div id="statusBadge" class="badge-status">💎 حالة الاشتراك: <span id="statusText" style="color: #38bdf8;">جار التحقق...</span></div>
+    </div>
 
     <form id="cvForm" onsubmit="return false;">
         <div class="form-group" onclick="checkAuthAndProceed(event)">
@@ -148,7 +165,6 @@
             <textarea id="cvText" name="cv_text" data-i18n-placeholder="textPlaceholder"></textarea>
         </div>
 
-        <!-- حقل مخفي لتحديد اتجاه ملف الـ PDF بناءً على اختيار المستخدم -->
         <input type="hidden" name="pdf_direction" id="pdfDirectionInput" value="ltr">
 
         <button type="button" class="btn btn-main" id="submitBtn" onclick="checkAuthAndSubmit(event)" data-i18n="submitBtnText">تحسين السيرة الذاتية بالذكاء الاصطناعي 🚀</button>
@@ -158,7 +174,6 @@
         <h3 style="color: #a78bfa;" data-i18n="resultHeader">النتيجة الذكية:</h3>
         <div id="resultContent"></div>
         
-        <!-- أزرار التحميل -->
         <div class="download-buttons">
             <form id="pdfForm" action="/download/pdf" method="POST" target="_blank">
                 <input type="hidden" name="content" id="pdfContentInput">
@@ -189,23 +204,60 @@
         <input type="email" id="signUpEmail" placeholder="البريد الإلكتروني" data-i18n-placeholder="emailPlaceholder"><br><br>
         <input type="password" id="signUpPassword" placeholder="كلمة المرور" data-i18n-placeholder="passwordPlaceholder"><br><br>
         <button class="btn btn-green" style="width: 100%;" id="signUpSubmitBtn" data-i18n="signUpSubmitText">إنشاء حساب</button><br><br>
-        <button class="btn btn-red" style="width: 100%;" id="closeSignUpBtn" data-i18n="closeBtnText">إغلاق</button>
+        <button class="btn btn-red" style="width: 100%;" id="closeSignUpModalBtn" data-i18n="closeBtnText">إغلاق</button>
     </div>
 </div>
 
-<!-- نافذة تنبيه إلزامية تسجيل الدخول عند التفاعل دون حساب -->
 <div id="authGuardModal" class="modal">
     <div class="modal-box">
         <h3 style="color: #ef4444; margin-top: 0;" data-i18n="guardTitle">تنبيه هام</h3>
-        <p style="color: #cbd5e1; font-size: 14px; line-height: 1.5;" data-i18n="guardDesc">عذراً، يجب عليك تسجيل الدخول أو إنشاء حساب أولاً لتتمكن من استخدام المنصة وتعديل سيرتك الذاتية.</p>
+        <p style="color: #cbd5e1; font-size: 14px; line-height: 1.5;" data-i18n="guardDesc">عذراً، يجب عليك تسجيل الدخول أو إنشاء حساب أولاً لتتمكن من استخدام المنصة.</p>
         <button class="btn" style="width: 100%; margin-top: 10px;" onclick="openLoginFromGuard()" data-i18n="guardLoginBtn">تسجيل الدخول / إنشاء حساب</button><br><br>
         <button class="btn btn-red" style="width: 100%;" onclick="closeAuthGuard()" data-i18n="closeBtnText">إغلاق</button>
     </div>
 </div>
 
+<!-- نافذة انتهاء الاشتراك أو الحاجة للاشتراك -->
+<div id="paymentModal" class="modal">
+    <div class="modal-box" style="width: 390px;">
+        <h3 id="paymentModalTitle" style="color: #ef4444; margin-top: 0;">🔒 انتهى اشتراكك الشهري</h3>
+        <p id="paymentModalDesc" style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+            لقد انتهت مدة اشتراكك الشهري. جدد اشتراكك الآن لتستمتع بالاستخدام غير المحدود طوال الشهر القادم:
+        </p>
+        
+        <!-- زر باي بال -->
+        <a href="https://www.paypal.com/ncp/payment/P-582340274V776405PNKMJOUQ" target="_blank" class="btn btn-green" style="display: block; width: 100%; padding: 11px; text-decoration: none; margin-bottom: 10px; font-size: 14px;">
+            💳 اشترك عبر PayPal (دولياً)
+        </a>
+
+        <!-- زر كليك -->
+        <button onclick="openCliqModal()" class="btn btn-cliq" style="display: block; width: 100%; padding: 11px; margin-bottom: 15px; font-size: 14px;">
+            📱 الدفع الفوري عبر كليك CliQ (أورنج موني)
+        </button>
+
+        <button class="btn btn-red" style="width: 100%;" onclick="document.getElementById('paymentModal').style.display='none';">إغلاق</button>
+    </div>
+</div>
+
+<!-- نافذة تفاصيل كليك CliQ برقم أورنج موني -->
+<div id="cliqModal" class="modal">
+    <div class="modal-box" style="width: 400px;">
+        <h3 style="color: #0ea5e9; margin-top: 0;">📱 التحويل عبر CliQ (أورنج موني)</h3>
+        <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6; text-align: right;">
+            1. قم بتحويل رسوم الاشتراك الشهري عبر تطبيق البنك أو محفظتك إلى رقم أورنج موني التالي باستخدام كليك:<br>
+            <b style="color: #38bdf8; display: block; background: #090d16; padding: 10px; border-radius: 6px; margin-top: 8px; font-size: 16px; text-align: center; user-select: all;">0781771420</b><br>
+            2. بعد إتمام التحويل، أدخل **رقم حركة التحويل (Transaction ID)** بالأسفل لتفعيل اشتراكك الشهري فوراً:
+        </p>
+        
+        <input type="text" id="cliqTrxId" placeholder="أدخل رقم الحركة (Transaction ID)" style="margin-bottom: 15px;"><br>
+        
+        <button onclick="submitCliqPayment()" class="btn btn-cliq" style="width: 100%; margin-bottom: 10px;">تأكيد الدفع وتفعيل الاشتراك الشهري ✅</button>
+        <button class="btn btn-red" style="width: 100%;" onclick="document.getElementById('cliqModal').style.display='none';">الرجوع</button>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // نظام الترجمة الثنائي (عربي / إنجليزي)
     const translations = {
         ar: {
             dir: "rtl",
@@ -234,7 +286,7 @@
             signUpSubmitText: "إنشاء حساب",
             closeBtnText: "إغلاق",
             guardTitle: "تسجيل الدخول مطلوب",
-            guardDesc: "يجب عليك تسجيل الدخول أو إنشاء حساب أولاً للتمكن من إدخال المسمى الوظيفي، لصق النصوص، أو رفع الملفات واستخدام المنصة.",
+            guardDesc: "يجب عليك تسجيل الدخول أو إنشاء حساب أولاً للتمكن من استخدام المنصة.",
             guardLoginBtn: "تسجيل الدخول / إنشاء حساب"
         },
         en: {
@@ -264,7 +316,7 @@
             signUpSubmitText: "Sign Up",
             closeBtnText: "Close",
             guardTitle: "Login Required",
-            guardDesc: "You must log in or sign up first to enter a job title, paste text, upload files, or use the platform.",
+            guardDesc: "You must log in or sign up first to use the platform.",
             guardLoginBtn: "Login / Sign Up"
         }
     };
@@ -291,8 +343,46 @@
         });
     }
 
-    // متغير عام لتحديد حالة المستخدم
     let currentUser = null;
+
+    // دوال إدارة الاشتراك الشهري
+    function getSubscriptionExpiry() {
+        const key = currentUser ? `sub_expiry_${currentUser.email}` : 'sub_expiry_guest';
+        const expiryStr = localStorage.getItem(key);
+        if (!expiryStr) return 0;
+        return parseInt(expiryStr);
+    }
+
+    function isSubscriptionActive() {
+        const expiryTime = getSubscriptionExpiry();
+        return Date.now() < expiryTime;
+    }
+
+    function activateMonthlySubscription() {
+        const key = currentUser ? `sub_expiry_${currentUser.email}` : 'sub_expiry_guest';
+        // إضافة 30 يوماً بالمللي ثانية (30 يوم * 24 ساعة * 60 دقيقة * 60 ثانية * 1000)
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        const newExpiry = Date.now() + thirtyDaysMs;
+        localStorage.setItem(key, newExpiry);
+        updateStatusDisplay();
+    }
+
+    function updateStatusDisplay() {
+        const statusSpan = document.getElementById('statusText');
+        if (isSubscriptionActive()) {
+            const expiryDate = new Date(getSubscriptionExpiry());
+            statusSpan.innerText = `مشترك (ينتهي في ${expiryDate.toLocaleDateString()})`;
+            statusSpan.style.color = '#34d399'; // أخضر نشط
+        } else {
+            const expiryTime = getSubscriptionExpiry();
+            if (expiryTime > 0) {
+                statusSpan.innerText = "انتهى الاشتراك الشهري ❌";
+            } else {
+                statusSpan.innerText = "غير مشترك (يرجى الاشتراك للاستخدام)";
+            }
+            statusSpan.style.color = '#f87171'; // أحمر منتهي
+        }
+    }
 
     function checkAuthAndProceed(event) {
         if (!currentUser) {
@@ -309,8 +399,41 @@
             document.getElementById('authGuardModal').style.display = 'flex';
             return;
         }
-        // تنفيذ الدالة الأصلية للاستمارة
+
+        if (!isSubscriptionActive()) {
+            const expiryTime = getSubscriptionExpiry();
+            if (expiryTime > 0) {
+                document.getElementById('paymentModalTitle').innerText = "🔒 انتهى اشتراكك الشهري";
+                document.getElementById('paymentModalDesc').innerText = "لقد انتهت مدة اشتراكك الشهري لهذا الشهر. يرجى تجديد الاشتراك لاستئناف الاستخدام غير المحدود:";
+            } else {
+                document.getElementById('paymentModalTitle').innerText = "🔒 الاشتراك الشهري مطلوب";
+                document.getElementById('paymentModalDesc').innerText = "يرجى الاشتراك في الخدمة لتتمكن من استخدام المنصة طوال الشهر بلا حدود:";
+            }
+            document.getElementById('paymentModal').style.display = 'flex';
+            return;
+        }
+
         executeSubmit();
+    }
+
+    function openCliqModal() {
+        document.getElementById('paymentModal').style.display = 'none';
+        document.getElementById('cliqModal').style.display = 'flex';
+    }
+
+    function submitCliqPayment() {
+        const trxId = document.getElementById('cliqTrxId').value.trim();
+        if (!trxId) {
+            alert("يرجى إدخال رقم حركة التحويل (Transaction ID) لتأكيد العملية.");
+            return;
+        }
+
+        // تفعيل الاشتراك الشهري لمدة 30 يوم
+        activateMonthlySubscription();
+
+        alert("تم تأكيد رقم الحركة بنجاح! تم تفعيل اشتراكك الشهري غير المحدود لمدة 30 يوماً قادمة. شكراً لك! 🎉");
+        document.getElementById('cliqModal').style.display = 'none';
+        document.getElementById('cliqTrxId').value = '';
     }
 
     function openLoginFromGuard() {
@@ -337,7 +460,7 @@
         document.getElementById('closeLoginBtn').onclick = () => loginModal.style.display = 'none';
         
         document.getElementById('openSignUpBtn').onclick = () => signUpModal.style.display = 'flex';
-        document.getElementById('closeSignUpBtn').onclick = () => signUpModal.style.display = 'none';
+        document.getElementById('closeSignUpModalBtn').onclick = () => signUpModal.style.display = 'none';
 
         const SUPABASE_URL = "{{ supabase_url|default('') }}";
         const SUPABASE_ANON_KEY = "{{ supabase_key|default('') }}";
@@ -350,6 +473,7 @@
                     if (data && data.session) {
                         currentUser = data.session.user;
                         updateUI();
+                        updateStatusDisplay();
                     }
                 }).catch(err => console.log("Supabase error:", err));
             } catch (e) { console.log("Supabase init failed:", e); }
@@ -364,6 +488,7 @@
                 document.getElementById('unauthSec').style.display = 'block';
                 document.getElementById('authSec').style.display = 'none';
             }
+            updateStatusDisplay();
         }
 
         document.getElementById('loginSubmitBtn').onclick = () => {
@@ -398,6 +523,8 @@
             currentUser = null;
             updateUI();
         };
+
+        updateStatusDisplay();
 
         window.executeSubmit = function() {
             const jobTitle = document.getElementById('jobTitle').value.trim();
