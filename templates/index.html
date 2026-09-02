@@ -8,7 +8,10 @@
     <!-- كود إثبات ملكية Monetag -->
     <meta name="monetag" content="86d2be49c212405d363fa690d2524ef7">
     
-    <!-- كود إثبات ملكية Google AdSense -->
+    <!-- كود إعلانات Monetag Multitag الجديد -->
+    <script src="https://quge5.com/88/tag.min.js" data-zone="275840" async data-cfasync="false"></script>
+    
+    <!-- كود إثبات ملكية وإعلانات Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7946557086083356"
          crossorigin="anonymous"></script>
 
@@ -348,25 +351,23 @@
 
     let currentUser = null;
 
-    // تحديد بريد المالك لاستثنائه وجعله مفتوحاً ومجانياً بشكل دائم
     function isOwner() {
         return currentUser && currentUser.email === 'mohannadkhaloof38@gmail.com';
     }
 
-    // دوال إدارة المحاولات المجانية والاشتراك الشهري
     function getUserCredits() {
-        if (isOwner()) return 999; // رصيد غير محدود للمالك
+        if (isOwner()) return 999;
         const key = currentUser ? `free_credits_${currentUser.email}` : 'free_credits_guest';
         let credits = localStorage.getItem(key);
         if (credits === null || isNaN(credits)) {
-            credits = 2; // محاولتان مجانيتان افتراضياً للمستخدمين الجدد
+            credits = 2;
             localStorage.setItem(key, credits);
         }
         return parseInt(credits);
     }
 
     function useFreeCredit() {
-        if (isOwner()) return true; // المالك لا يستهلك من رصيده شيئاً
+        if (isOwner()) return true;
         const key = currentUser ? `free_credits_${currentUser.email}` : 'free_credits_guest';
         let credits = getUserCredits();
         if (credits > 0) {
@@ -385,7 +386,7 @@
     }
 
     function isSubscriptionActive() {
-        if (isOwner()) return true; // المالك اعتباره مشترك دائماً
+        if (isOwner()) return true;
         const expiryTime = getSubscriptionExpiry();
         return Date.now() < expiryTime;
     }
@@ -409,7 +410,7 @@
         const statusSpan = document.getElementById('statusText');
         if (isOwner()) {
             statusSpan.innerText = "👑 مالك المنصة (وصول مفتوح وكامل)";
-            statusSpan.style.color = '#c084fc'; // لون مميز للمالك
+            statusSpan.style.color = '#c084fc';
         } else if (isSubscriptionActive()) {
             const expiryDate = new Date(getSubscriptionExpiry());
             statusSpan.innerText = `مشترك (ينتهي في ${expiryDate.toLocaleDateString()})`;
@@ -449,7 +450,6 @@
             return;
         }
 
-        // خصم محاولة فقط إذا لم يكن المالك ولم يكن لديه اشتراك نشط
         if (!isOwner() && !isSubscriptionActive()) {
             useFreeCredit();
             updateStatusDisplay();
