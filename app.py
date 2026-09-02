@@ -42,6 +42,11 @@ def home():
         supabase_key=os.environ.get("SUPABASE_ANON_KEY", "")
     )
 
+# مسار robots.txt البرمجي لحل مشكلة أدوات مشرفي الموقع نهائياً
+@app.route('/robots.txt')
+def robots_txt():
+    return "User-agent: *\nAllow: /", 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
 @app.route('/optimize', methods=['POST'])
 def optimize_cv():
     user_ip = request.remote_addr
