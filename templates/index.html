@@ -345,18 +345,25 @@
 
     let currentUser = null;
 
-    // دوال إدارة المحاولات المجانية والاشتراك الشهري (محدثة بدعم كامل للحسابات الجديدة)
+    // تحديد بريد المالك لاستثنائه وجعله مفتوحاً ومجاناً بشكل دائم
+    function isOwner() {
+        return currentUser && currentUser.email === 'mohannadkhaloof38@gmail.com';
+    }
+
+    // دوال إدارة المحاولات المجانية والاشتراك الشهري
     function getUserCredits() {
+        if (isOwner()) return 999; // رصيد غير محدود للمالك
         const key = currentUser ? `free_credits_${currentUser.email}` : 'free_credits_guest';
         let credits = localStorage.getItem(key);
         if (credits === null || isNaN(credits)) {
-            credits = 2; // منح محاولتين مجانيتين تلقائياً للمستخدم الجديد
+            credits = 2; // محاولتان مجانيتان افتراضياً للمستخدمين الجدد
             localStorage.setItem(key, credits);
         }
         return parseInt(credits);
     }
 
     function useFreeCredit() {
+        if (isOwner()) return true; // المالك لا يستهلك من رصيده شيئاً
         const key = currentUser ? `free_credits_${currentUser.email}` : 'free_credits_guest';
         let credits = getUserCredits();
         if (credits > 0) {
@@ -375,11 +382,13 @@
     }
 
     function isSubscriptionActive() {
+        if (isOwner()) return true; // المالك اعتباره مشترك دائماً
         const expiryTime = getSubscriptionExpiry();
         return Date.now() < expiryTime;
     }
 
     function canUserUseService() {
+        if (isOwner()) return true;
         if (isSubscriptionActive()) return true;
         if (getUserCredits() > 0) return true;
         return false;
@@ -395,18 +404,21 @@
 
     function updateStatusDisplay() {
         const statusSpan = document.getElementById('statusText');
-        if (isSubscriptionActive()) {
+        if (isOwner()) {
+            statusSpan.innerText = "👑 مالك المنصة (وصول مفتوح وكامل)";
+            statusSpan.style.color = '#c084fc'; // لون مميز للمالك
+        } else if (isSubscriptionActive()) {
             const expiryDate = new Date(getSubscriptionExpiry());
             statusSpan.innerText = `مشترك (ينتهي في ${expiryDate.toLocaleDateString()})`;
-            statusSpan.style.color = '#34d399'; // أخضر نشط
+            statusSpan.style.color = '#34d399';
         } else {
             const credits = getUserCredits();
             if (credits > 0) {
                 statusSpan.innerText = `حساب مجاني (${credits} محاولات متبقية)`;
-                statusSpan.style.color = '#38bdf8'; // أزرق للمحاولات المجانية
+                statusSpan.style.color = '#38bdf8';
             } else {
                 statusSpan.innerText = "انتهت محاولاتك المجانية (يرجى الاشتراك)";
-                statusSpan.style.color = '#f87171'; // أحمر منتهي
+                statusSpan.style.color = '#f87171';
             }
         }
     }
@@ -427,7 +439,6 @@
             return;
         }
 
-        // التحقق هل يملك صلاحية الاستخدام (اشتراك نشط أو محاولات مجانية متبقية)
         if (!canUserUseService()) {
             document.getElementById('paymentModalTitle').innerText = "🔒 انتهت محاولاتك المجانية";
             document.getElementById('paymentModalDesc').innerText = "لقد استخدمت محاولاتك المجانية. يرجى الاشتراك في الخدمة لاستئناف الاستخدام غير المحدود:";
@@ -435,8 +446,8 @@
             return;
         }
 
-        // إذا لم يكن مشتركاً ولديه محاولات مجانية، نقوم بخصم محاولة
-        if (!isSubscriptionActive()) {
+        // خصم محاولة فقط إذا لم يكن المالك ولم يكن لديه اشتراك نشط
+        if (!isOwner() && !isSubscriptionActive()) {
             useFreeCredit();
             updateStatusDisplay();
         }
