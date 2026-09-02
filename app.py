@@ -47,6 +47,11 @@ def home():
 def robots_txt():
     return "User-agent: *\nAllow: /", 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
+# مسار ads.txt البرمجي الخاص بـ Google AdSense (استبدل pub-XXXXXXXXXXXXXXXX برقم الناشر الخاص بك)
+@app.route('/ads.txt')
+def ads_txt():
+    return "google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0", 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
 @app.route('/optimize', methods=['POST'])
 def optimize_cv():
     user_ip = request.remote_addr
@@ -127,7 +132,6 @@ def download_word():
 def download_pdf():
     content = request.form.get('content', '')
     
-    # تنسيق HTML أنيق لملف الـ PDF الناتج
     html_content = f"""
     <!DOCTYPE html>
     <html lang="ar" dir="rtl">
