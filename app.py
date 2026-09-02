@@ -50,8 +50,7 @@ def robots_txt():
 # مسار ads.txt البرمجي الخاص بـ Google AdSense (استبدل pub-XXXXXXXXXXXXXXXX برقم الناشر الخاص بك)
 @app.route('/ads.txt')
 def ads_txt():
-    return "google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0", 200, {'Content-Type': 'text/plain; charset=utf-8'}
-
+    return "google.com, pub-7946557086083356, DIRECT, f08c47fec0942fa0", 200, {'Content-Type': 'text/plain; charset=utf-8'}
 @app.route('/optimize', methods=['POST'])
 def optimize_cv():
     user_ip = request.remote_addr
