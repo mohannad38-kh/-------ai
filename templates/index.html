@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أداة تحسين السيرة الذاتية (ATS)</title>
+    <title data-i18n="pageTitle">أداة تحسين السيرة الذاتية (ATS)</title>
     
     <!-- كود إثبات ملكية Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7946557086083356"
@@ -35,7 +35,7 @@
             height: fit-content;
         }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         
         .btn { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
         .btn:hover { background: #2563eb; box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
@@ -79,7 +79,7 @@
         textarea { height: 120px; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(5px); }
-        .modal-box { background: #1e293b; color: #f8fafc; padding: 25px; border-radius: 12px; width: 340px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(139, 92, 246, 0.4); }
+        .modal-box { background: #1e293b; color: #f8fafc; padding: 25px; border-radius: 12px; width: 340px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(139, 92, 246, 0.4); text-align: center; }
         
         .result-box { 
             display: none; 
@@ -109,58 +109,65 @@
 
 <div class="container">
     <div class="header">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="btn" id="langToggleBtn" onclick="toggleLanguage()" style="background: #475569;">English</button>
+        </div>
         <div id="unauthSec">
-            <button class="btn" id="openLoginBtn">تسجيل الدخول</button>
-            <button class="btn btn-green" id="openSignUpBtn">إنشاء حساب</button>
+            <button class="btn" id="openLoginBtn" data-i18n="loginBtnText">تسجيل الدخول</button>
+            <button class="btn btn-green" id="openSignUpBtn" data-i18n="signUpBtnText">إنشاء حساب</button>
         </div>
         <div id="authSec" style="display: none;">
             <span id="userEmail" style="margin-left: 10px; font-weight: bold; color: #93c5fd;"></span>
-            <button class="btn btn-red" id="logoutBtn">خروج</button>
+            <button class="btn btn-red" id="logoutBtn" data-i18n="logoutBtnText">خروج</button>
         </div>
     </div>
 
-    <h2 style="color: #f1f5f9; text-align: center; margin-bottom: 25px; letter-spacing: 0.5px;">✨ منصة ذكاء سيرة الذاتية (AI-ATS)</h2>
+    <h2 style="color: #f1f5f9; text-align: center; margin-bottom: 25px; letter-spacing: 0.5px;" data-i18n="mainHeader">✨ منصة ذكاء سيرة الذاتية (AI-ATS)</h2>
 
     <form id="cvForm" onsubmit="return false;">
-        <div class="form-group">
-            <label>المسمى الوظيفي:</label>
-            <input type="text" id="jobTitle" name="job_title" required placeholder="مثال: AI Engineer / Software Developer">
+        <div class="form-group" onclick="checkAuthAndProceed(event)">
+            <label data-i18n="jobTitleLabel">المسمى الوظيفي:</label>
+            <input type="text" id="jobTitle" name="job_title" required data-i18n-placeholder="jobTitlePlaceholder" placeholder="مثال: AI Engineer / Software Developer">
         </div>
 
-        <div class="form-group">
-            <label>اللغة المطلوبة:</label>
-            <select name="language" id="outLang">
-                <option value="English">الإنجليزية (English)</option>
-                <option value="Arabic">العربية (Arabic)</option>
+        <div class="form-group" onclick="checkAuthAndProceed(event)">
+            <label data-i18n="langLabel">اللغة المطلوبة:</label>
+            <select name="language" id="outLang" onchange="updatePdfDirection()">
+                <option value="English" data-i18n="optEn">الإنجليزية (English)</option>
+                <option value="Arabic" data-i18n="optAr">العربية (Arabic)</option>
             </select>
         </div>
 
-        <div class="form-group">
-            <label>رفع ملف CV (PDF/DOCX):</label>
+        <div class="form-group" onclick="checkAuthAndProceed(event)">
+            <label data-i18n="fileLabel">رفع ملف CV (PDF/DOCX):</label>
             <input type="file" id="cvFile" name="cv_file" accept=".pdf,.docx">
         </div>
 
-        <div class="form-group">
-            <label>أو الصق النص هنا:</label>
-            <textarea id="cvText" name="cv_text"></textarea>
+        <div class="form-group" onclick="checkAuthAndProceed(event)">
+            <label data-i18n="textLabel">أو الصق النص هنا:</label>
+            <textarea id="cvText" name="cv_text" data-i18n-placeholder="textPlaceholder"></textarea>
         </div>
 
-        <button type="button" class="btn btn-main" id="submitBtn">تحسين السيرة الذاتية بالذكاء الاصطناعي 🚀</button>
+        <!-- حقل مخفي لتحديد اتجاه ملف الـ PDF بناءً على اختيار المستخدم -->
+        <input type="hidden" name="pdf_direction" id="pdfDirectionInput" value="ltr">
+
+        <button type="button" class="btn btn-main" id="submitBtn" onclick="checkAuthAndSubmit(event)" data-i18n="submitBtnText">تحسين السيرة الذاتية بالذكاء الاصطناعي 🚀</button>
     </form>
 
     <div id="resultBox" class="result-box">
-        <h3 style="color: #a78bfa;">النتيجة الذكية:</h3>
+        <h3 style="color: #a78bfa;" data-i18n="resultHeader">النتيجة الذكية:</h3>
         <div id="resultContent"></div>
         
         <!-- أزرار التحميل -->
         <div class="download-buttons">
             <form id="pdfForm" action="/download/pdf" method="POST" target="_blank">
                 <input type="hidden" name="content" id="pdfContentInput">
-                <button type="submit" class="btn btn-red">📥 تحميل PDF</button>
+                <input type="hidden" name="direction" id="pdfFormDirectionInput" value="ltr">
+                <button type="submit" class="btn btn-red" data-i18n="downloadPdfBtn">📥 تحميل PDF</button>
             </form>
             <form id="wordForm" action="/download/word" method="POST" target="_blank">
                 <input type="hidden" name="content" id="wordContentInput">
-                <button type="submit" class="btn">📥 تحميل Word</button>
+                <button type="submit" class="btn" data-i18n="downloadWordBtn">📥 تحميل Word</button>
             </form>
         </div>
     </div>
@@ -168,26 +175,160 @@
 
 <div id="loginModal" class="modal">
     <div class="modal-box">
-        <h3 style="color: #a78bfa; margin-top: 0;">تسجيل الدخول</h3>
-        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني"><br><br>
-        <input type="password" id="loginPassword" placeholder="كلمة المرور"><br><br>
-        <button class="btn" style="width: 100%;" id="loginSubmitBtn">دخول</button><br><br>
-        <button class="btn btn-red" style="width: 100%;" id="closeLoginBtn">إغلاق</button>
+        <h3 style="color: #a78bfa; margin-top: 0;" data-i18n="loginModalTitle">تسجيل الدخول</h3>
+        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" data-i18n-placeholder="emailPlaceholder"><br><br>
+        <input type="password" id="loginPassword" placeholder="كلمة المرور" data-i18n-placeholder="passwordPlaceholder"><br><br>
+        <button class="btn" style="width: 100%;" id="loginSubmitBtn" data-i18n="loginSubmitText">دخول</button><br><br>
+        <button class="btn btn-red" style="width: 100%;" id="closeLoginBtn" data-i18n="closeBtnText">إغلاق</button>
     </div>
 </div>
 
 <div id="signUpModal" class="modal">
     <div class="modal-box">
-        <h3 style="color: #a78bfa; margin-top: 0;">إنشاء حساب جديد</h3>
-        <input type="email" id="signUpEmail" placeholder="البريد الإلكتروني"><br><br>
-        <input type="password" id="signUpPassword" placeholder="كلمة المرور"><br><br>
-        <button class="btn btn-green" style="width: 100%;" id="signUpSubmitBtn">إنشاء حساب</button><br><br>
-        <button class="btn btn-red" style="width: 100%;" id="closeSignUpBtn">إغلاق</button>
+        <h3 style="color: #a78bfa; margin-top: 0;" data-i18n="signUpModalTitle">إنشاء حساب جديد</h3>
+        <input type="email" id="signUpEmail" placeholder="البريد الإلكتروني" data-i18n-placeholder="emailPlaceholder"><br><br>
+        <input type="password" id="signUpPassword" placeholder="كلمة المرور" data-i18n-placeholder="passwordPlaceholder"><br><br>
+        <button class="btn btn-green" style="width: 100%;" id="signUpSubmitBtn" data-i18n="signUpSubmitText">إنشاء حساب</button><br><br>
+        <button class="btn btn-red" style="width: 100%;" id="closeSignUpBtn" data-i18n="closeBtnText">إغلاق</button>
+    </div>
+</div>
+
+<!-- نافذة تنبيه إلزامية تسجيل الدخول عند التفاعل دون حساب -->
+<div id="authGuardModal" class="modal">
+    <div class="modal-box">
+        <h3 style="color: #ef4444; margin-top: 0;" data-i18n="guardTitle">تنبيه هام</h3>
+        <p style="color: #cbd5e1; font-size: 14px; line-height: 1.5;" data-i18n="guardDesc">عذراً، يجب عليك تسجيل الدخول أو إنشاء حساب أولاً لتتمكن من استخدام المنصة وتعديل سيرتك الذاتية.</p>
+        <button class="btn" style="width: 100%; margin-top: 10px;" onclick="openLoginFromGuard()" data-i18n="guardLoginBtn">تسجيل الدخول / إنشاء حساب</button><br><br>
+        <button class="btn btn-red" style="width: 100%;" onclick="closeAuthGuard()" data-i18n="closeBtnText">إغلاق</button>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+    // نظام الترجمة الثنائي (عربي / إنجليزي)
+    const translations = {
+        ar: {
+            dir: "rtl",
+            pageTitle: "أداة تحسين السيرة الذاتية (ATS)",
+            loginBtnText: "تسجيل الدخول",
+            signUpBtnText: "إنشاء حساب",
+            logoutBtnText: "خروج",
+            mainHeader: "✨ منصة ذكاء سيرة الذاتية (AI-ATS)",
+            jobTitleLabel: "المسمى الوظيفي:",
+            jobTitlePlaceholder: "مثال: AI Engineer / Software Developer",
+            langLabel: "اللغة المطلوبة:",
+            optEn: "الإنجليزية (English)",
+            optAr: "العربية (Arabic)",
+            fileLabel: "رفع ملف CV (PDF/DOCX):",
+            textLabel: "أو الصق النص هنا:",
+            textPlaceholder: "الصق النص هنا...",
+            submitBtnText: "تحسين السيرة الذاتية بالذكاء الاصطناعي 🚀",
+            resultHeader: "النتيجة الذكية:",
+            downloadPdfBtn: "📥 تحميل PDF",
+            downloadWordBtn: "📥 تحميل Word",
+            loginModalTitle: "تسجيل الدخول",
+            signUpModalTitle: "إنشاء حساب جديد",
+            emailPlaceholder: "البريد الإلكتروني",
+            passwordPlaceholder: "كلمة المرور",
+            loginSubmitText: "دخول",
+            signUpSubmitText: "إنشاء حساب",
+            closeBtnText: "إغلاق",
+            guardTitle: "تسجيل الدخول مطلوب",
+            guardDesc: "يجب عليك تسجيل الدخول أو إنشاء حساب أولاً للتمكن من إدخال المسمى الوظيفي، لصق النصوص، أو رفع الملفات واستخدام المنصة.",
+            guardLoginBtn: "تسجيل الدخول / إنشاء حساب"
+        },
+        en: {
+            dir: "ltr",
+            pageTitle: "AI-ATS Resume Optimizer",
+            loginBtnText: "Login",
+            signUpBtnText: "Sign Up",
+            logoutBtnText: "Logout",
+            mainHeader: "✨ AI-ATS Resume Intelligence Platform",
+            jobTitleLabel: "Job Title:",
+            jobTitlePlaceholder: "e.g., AI Engineer / Software Developer",
+            langLabel: "Target Language:",
+            optEn: "English",
+            optAr: "Arabic",
+            fileLabel: "Upload CV (PDF/DOCX):",
+            textLabel: "Or Paste Text Here:",
+            textPlaceholder: "Paste your text here...",
+            submitBtnText: "Optimize CV with AI 🚀",
+            resultHeader: "Smart Result:",
+            downloadPdfBtn: "📥 Download PDF",
+            downloadWordBtn: "📥 Download Word",
+            loginModalTitle: "Login",
+            signUpModalTitle: "Create New Account",
+            emailPlaceholder: "Email Address",
+            passwordPlaceholder: "Password",
+            loginSubmitText: "Login",
+            signUpSubmitText: "Sign Up",
+            closeBtnText: "Close",
+            guardTitle: "Login Required",
+            guardDesc: "You must log in or sign up first to enter a job title, paste text, upload files, or use the platform.",
+            guardLoginBtn: "Login / Sign Up"
+        }
+    };
+
+    let currentLang = 'ar';
+
+    function toggleLanguage() {
+        currentLang = currentLang === 'ar' ? 'en' : 'ar';
+        const t = translations[currentLang];
+        const htmlRoot = document.getElementById('htmlRoot');
+        
+        htmlRoot.setAttribute('dir', t.dir);
+        htmlRoot.setAttribute('lang', currentLang);
+        document.getElementById('langToggleBtn').innerText = currentLang === 'ar' ? 'English' : 'عربي';
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key]) el.innerText = t[key];
+        });
+
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (t[key]) el.placeholder = t[key];
+        });
+    }
+
+    // متغير عام لتحديد حالة المستخدم
+    let currentUser = null;
+
+    function checkAuthAndProceed(event) {
+        if (!currentUser) {
+            event.stopPropagation();
+            event.preventDefault();
+            document.getElementById('authGuardModal').style.display = 'flex';
+        }
+    }
+
+    function checkAuthAndSubmit(event) {
+        if (!currentUser) {
+            event.stopPropagation();
+            event.preventDefault();
+            document.getElementById('authGuardModal').style.display = 'flex';
+            return;
+        }
+        // تنفيذ الدالة الأصلية للاستمارة
+        executeSubmit();
+    }
+
+    function openLoginFromGuard() {
+        document.getElementById('authGuardModal').style.display = 'none';
+        document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    function closeAuthGuard() {
+        document.getElementById('authGuardModal').style.display = 'none';
+    }
+
+    function updatePdfDirection() {
+        const langSelect = document.getElementById('outLang').value;
+        const dir = (langSelect === 'Arabic') ? 'rtl' : 'ltr';
+        document.getElementById('pdfDirectionInput').value = dir;
+        document.getElementById('pdfFormDirectionInput').value = dir;
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const loginModal = document.getElementById('loginModal');
         const signUpModal = document.getElementById('signUpModal');
@@ -201,7 +342,6 @@
         const SUPABASE_URL = "{{ supabase_url|default('') }}";
         const SUPABASE_ANON_KEY = "{{ supabase_key|default('') }}";
         let supabase = null;
-        let currentUser = null;
 
         if (window.supabase && SUPABASE_URL.trim() !== "" && SUPABASE_URL.startsWith('http')) {
             try {
@@ -259,7 +399,7 @@
             updateUI();
         };
 
-        document.getElementById('submitBtn').onclick = function() {
+        window.executeSubmit = function() {
             const jobTitle = document.getElementById('jobTitle').value.trim();
             const cvText = document.getElementById('cvText').value.trim();
             const cvFile = document.getElementById('cvFile').files.length;
@@ -267,9 +407,9 @@
             if (!jobTitle) return alert("يرجى إدخال المسمى الوظيفي");
             if (!cvText && cvFile === 0) return alert("يرجى وضع النص أو رفع ملف");
 
-            const btn = this;
+            const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerText = "جاري التحليل والتحسين بالذكاء الاصطناعي... ⏳";
+            btn.innerText = (currentLang === 'ar') ? "جاري التحليل والتحسين بالذكاء الاصطناعي... ⏳" : "Analyzing and optimizing with AI... ⏳";
 
             const formData = new FormData(document.getElementById('cvForm'));
 
@@ -283,7 +423,6 @@
                     document.getElementById('resultContent').innerHTML = resHtml;
                     document.getElementById('resultBox').style.display = 'block';
                     
-                    // تعبئة النتيجة في حقول الـ Forms الخاصة بالتحميل
                     document.getElementById('pdfContentInput').value = resHtml;
                     document.getElementById('wordContentInput').value = rawTextVal;
                     
@@ -299,7 +438,7 @@
             .catch(err => alert("حدث خطأ بالاتصال مع السيرفر."))
             .finally(() => {
                 btn.disabled = false;
-                btn.innerText = "تحسين السيرة الذاتية بالذكاء الاصطناعي 🚀";
+                btn.innerText = (currentLang === 'ar') ? "تحسين السيرة الذاتية بالذكاء الاصطناعي 🚀" : "Optimize CV with AI 🚀";
             });
         };
     });

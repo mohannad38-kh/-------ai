@@ -47,10 +47,11 @@ def home():
 def robots_txt():
     return "User-agent: *\nAllow: /", 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
-# مسار ads.txt البرمجي الخاص بـ Google AdSense (استبدل pub-XXXXXXXXXXXXXXXX برقم الناشر الخاص بك)
+# مسار ads.txt البرمجي الخاص بـ Google AdSense
 @app.route('/ads.txt')
 def ads_txt():
     return "google.com, pub-7946557086083356, DIRECT, f08c47fec0942fa0", 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
 @app.route('/optimize', methods=['POST'])
 def optimize_cv():
     user_ip = request.remote_addr
@@ -58,12 +59,12 @@ def optimize_cv():
 
     if current_usage >= FREE_LIMIT:
         return jsonify({
-            'result': 'لقد استهلكت محاولاتك الـ 3 المجانية لهذا اليوم.'
+            'result': 'لقد استهلكت محاولاتك الـ 3 المجانية لهذا اليوم. / You have consumed your 3 free trials for today.'
         }), 403
 
     try:
         if not model:
-            return jsonify({'result': 'مفتاح GEMINI_API_KEY غير معرف في البيئة.'}), 500
+            return jsonify({'result': 'مفتاح GEMINI_API_KEY غير معرف في البيئة. / GEMINI_API_KEY is not set.'}), 500
 
         job_title = request.form.get('job_title', '')
         language = request.form.get('language', 'English')
@@ -78,7 +79,7 @@ def optimize_cv():
                 cv_text = extract_text_from_docx(file.stream)
 
         if not cv_text.strip():
-            return jsonify({'result': 'يرجى إدخال نص أو رفع ملف سيرة ذاتية صالح.'}), 400
+            return jsonify({'result': 'يرجى إدخال نص أو رفع ملف سيرة ذاتية صالح. / Please enter text or upload a valid CV file.'}), 400
 
         prompt = f"""
 You are an expert ATS Resume Optimizer.
@@ -130,20 +131,22 @@ def download_word():
 @app.route('/download/pdf', methods=['POST'])
 def download_pdf():
     content = request.form.get('content', '')
+    direction = request.form.get('direction', 'ltr') # استقبال اتجاه الصفحة من الواجهة
+    lang_attr = 'ar' if direction == 'rtl' else 'en'
     
     html_content = f"""
     <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
+    <html lang="{lang_attr}" dir="{direction}">
     <head>
         <meta charset="UTF-8">
         <style>
-            body {{ font-family: DejaVu Sans, Arial, sans-serif; padding: 20px; color: #111; line-height: 1.6; }}
+            body {{ font-family: DejaVu Sans, Arial, sans-serif; padding: 20px; color: #111; line-height: 1.6; direction: {direction}; text-align: {'right' if direction == 'rtl' else 'left'}; }}
             h1, h2, h3 {{ color: #2563eb; }}
             hr {{ border: 0; border-top: 1px solid #ccc; margin: 15px 0; }}
         </style>
     </head>
     <body>
-        <h2>السيرة الذاتية المحسنة (ATS Optimized)</h2>
+        <h2>{"السيرة الذاتية المحسنة (ATS Optimized)" if direction == 'rtl' else "Optimized Resume (ATS Optimized)"}</h2>
         <hr>
         <div>{content}</div>
     </body>
