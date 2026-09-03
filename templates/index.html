@@ -228,17 +228,17 @@
     <div class="modal-box" style="width: 390px;">
         <h3 id="paymentModalTitle" style="color: #ef4444; margin-top: 0;">🔒 انتهت محاولاتك المجانية</h3>
         <p id="paymentModalDesc" style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
-            لقد استخدمت محاولاتك المجانية. يرجى الاشتراك في الخدمة لاستئناف الاستخدام غير المحدود طوال الشهر:
+            لقد استخدمت محاولاتك المجانية. يرجى الاشتراك في الخدمة بقيمة <b>5$ (دولار) شهرياً</b> لاستئناف الاستخدام غير المحدود:
         </p>
         
-        <!-- زر باي بال المحدث برابط PayPal.Me المباشر -->
+        <!-- زر باي بال المحدث -->
         <a href="https://www.paypal.com/paypalme/mohannad38" target="_blank" class="btn btn-green" style="display: block; width: 100%; padding: 11px; text-decoration: none; margin-bottom: 10px; font-size: 14px;">
-            💳 اشترك عبر PayPal (دولياً)
+            💳 اشترك بقيمة 5$ عبر PayPal (دولياً)
         </a>
 
-        <!-- زر كليك -->
+        <!-- زر كليك (للأردن فقط) -->
         <button onclick="openCliqModal()" class="btn btn-cliq" style="display: block; width: 100%; padding: 11px; margin-bottom: 15px; font-size: 14px;">
-            📱 الدفع الفوري عبر كليك CliQ (أورنج موني)
+            📱 الدفع الفوري بقيمة 5$ عبر كليك CliQ (للأردن فقط)
         </button>
 
         <button class="btn btn-red" style="width: 100%;" onclick="document.getElementById('paymentModal').style.display='none';">إغلاق</button>
@@ -248,9 +248,9 @@
 <!-- نافذة تفاصيل كليك CliQ برقم أورنج موني -->
 <div id="cliqModal" class="modal">
     <div class="modal-box" style="width: 400px;">
-        <h3 style="color: #0ea5e9; margin-top: 0;">📱 التحويل عبر CliQ (أورنج موني)</h3>
+        <h3 style="color: #0ea5e9; margin-top: 0;">📱 التحويل بقيمة 5$ عبر CliQ (لأردن فقط)</h3>
         <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6; text-align: right;">
-            1. قم بتحويل رسوم الاشتراك الشهري عبر تطبيق البنك أو محفظتك إلى رقم أورنج موني التالي باستخدام كليك:<br>
+            1. قم بتحويل رسوم الاشتراك الشهري بقيمة <b>5$</b> (أو ما يعادلها بالدينار الأردني) عبر تطبيق البنك أو محفظتك إلى رقم أورنج موني التالي باستخدام كليك:<br>
             <b style="color: #38bdf8; display: block; background: #090d16; padding: 10px; border-radius: 6px; margin-top: 8px; font-size: 16px; text-align: center; user-select: all;">0781771420</b><br>
             2. بعد إتمام التحويل، أدخل **رقم حركة التحويل (Transaction ID)** بالأسفل لتفعيل اشتراكك الشهري فوراً:
         </p>
@@ -413,7 +413,7 @@
             statusSpan.style.color = '#c084fc';
         } else if (isSubscriptionActive()) {
             const expiryDate = new Date(getSubscriptionExpiry());
-            statusSpan.innerText = `مشترك (ينتهي في ${expiryDate.toLocaleDateString()})`;
+            statusSpan.innerText = `مشترك بقيمة 5$ (ينتهي في ${expiryDate.toLocaleDateString()})`;
             statusSpan.style.color = '#34d399';
         } else {
             const credits = getUserCredits();
@@ -421,7 +421,7 @@
                 statusSpan.innerText = `حساب مجاني (${credits} محاولات متبقية)`;
                 statusSpan.style.color = '#38bdf8';
             } else {
-                statusSpan.innerText = "انتهت محاولاتك المجانية (يرجى الاشتراك)";
+                statusSpan.innerText = "انتهت محاولاتك المجانية (الاشتراك بقيمة 5$)";
                 statusSpan.style.color = '#f87171';
             }
         }
@@ -445,7 +445,7 @@
 
         if (!canUserUseService()) {
             document.getElementById('paymentModalTitle').innerText = "🔒 انتهت محاولاتك المجانية";
-            document.getElementById('paymentModalDesc').innerText = "لقد استخدمت محاولاتك المجانية. يرجى الاشتراك في الخدمة لاستئناف الاستخدام غير المحدود:";
+            document.getElementById('paymentModalDesc').innerHTML = "لقد استخدمت محاولاتك المجانية. يرجى الاشتراك في الخدمة بقيمة <b>5$ (دولار)</b> لاستئناف الاستخدام غير المحدود:";
             document.getElementById('paymentModal').style.display = 'flex';
             return;
         }
@@ -472,7 +472,7 @@
 
         activateMonthlySubscription();
 
-        alert("تم تأكيد رقم الحركة بنجاح! تم تفعيل اشتراكك الشهري غير المحدود لمدة 30 يوماً قادمة. شكراً لك! 🎉");
+        alert("تم تأكيد رقم الحركة بنجاح! تم تفعيل اشتراكك الشهري بقيمة 5$ لمدة 30 يوماً قادمة. شكراً لك! 🎉");
         document.getElementById('cliqModal').style.display = 'none';
         document.getElementById('cliqTrxId').value = '';
     }
